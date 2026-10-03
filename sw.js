@@ -1,4 +1,4 @@
-const CACHE_NAME = 'maisya-ambulan-v1';
+const CACHE_NAME = 'maisya-ambulan-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,10 +8,14 @@ const ASSETS_TO_CACHE = [
   './js/api.js',
   './js/public.js',
   './js/admin.js',
+  './assets/logo.png',
   './assets/logo.svg',
+  './assets/logo-ambulan.png',
+  './assets/logo-ponpes.png',
   './assets/icon-192.png',
   './assets/icon-512.png',
-  './assets/favicon.png'
+  './assets/favicon.png',
+  './assets/favicon.ico'
 ];
 
 self.addEventListener('install', (event) => {

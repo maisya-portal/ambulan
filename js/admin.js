@@ -511,7 +511,7 @@ class AdminPortal {
       `Semoga Allah Subhanahu wa Ta'ala membalas sedekah jariyah Bapak/Ibu dengan keberkahan rezeki, pahala yang tiada henti, dan kesehatan bagi keluarga.\n\n` +
       `Hormat kami,\n` +
       `*Tim Layanan Ambulan Ponpes Imam Syafi'i Brebes*\n` +
-      `Jl. Raya Karangsari - Luwungragi, Bulakamba, Brebes`
+      `Jl. Terusan Islamic Center – Sigempol Km. 3, Limbangan Wetan, Brebes`
     );
 
     window.open(`https://wa.me/${phone}?text=${pesan}`, '_blank');

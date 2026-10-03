@@ -9,8 +9,9 @@
   <meta name="description" content="Aplikasi resmi pengelolaan dan transparansi donasi serta layanan armada ambulan medis gratis santri dan kaum dhuafa Pondok Pesantren Imam Syafi'i Brebes.">
   <meta name="theme-color" content="#0d7a57">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="assets/favicon.png">
-  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="icon" type="image/png" href="assets/favicon.png?v=2">
+  <link rel="shortcut icon" href="assets/favicon.ico?v=2">
+  <link rel="apple-touch-icon" href="assets/icon-192.png?v=2">
 
   <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +35,7 @@
       <div class="header-inner">
         <!-- Logo & Brand -->
         <div class="brand-wrapper" onclick="window.app.navigateTo('beranda')">
-          <img src="assets/logo.svg" alt="Logo Ambulan Maisya" class="brand-logo">
+          <img src="assets/logo.png" alt="Logo Ambulan Maisya Ponpes Imam Syafi'i" class="brand-logo">
           <div class="brand-info">
             <span class="brand-title">
               AMBULAN MAISYA <span class="brand-badge"><i class="fa-solid fa-truck-medical"></i></span>
@@ -79,8 +80,8 @@
       </div>
       <div class="ticker-content">
         <span>Hotline Ambulan Ponpes Imam Syafi'i Brebes:</span>
-        <a href="tel:081234567890" class="ticker-hotline" title="Hubungi Hotline Ambulan">
-          <i class="fa-brands fa-whatsapp"></i> 0812-3456-7890
+        <a href="tel:081291542134" class="ticker-hotline" title="Hubungi Ustadz Tegar">
+          <i class="fa-brands fa-whatsapp"></i> 0812-9154-2134 (Ustadz Tegar)
         </a>
         <span class="ticker-free-tag"><i class="fa-solid fa-circle-check"></i> 100% Gratis Santri &amp; Dhuafa</span>
       </div>
@@ -718,13 +719,14 @@
           <div>
             <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid #ef4444;">
               <h3 style="color: #b91c1c; margin-bottom: 0.5rem;"><i class="fa-solid fa-phone-volume"></i> Hotline Darurat Ambulan</h3>
-              <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">Siaga panggilan 24 jam untuk rujukan medis darurat santri & dhuafa.</p>
-              <div style="font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-bottom: 1rem;" id="text-hotline">0812-3456-7890</div>
+              <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 0.5rem;">Siaga panggilan 24 jam untuk rujukan medis darurat santri & dhuafa.</p>
+              <div style="font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-bottom: 0.25rem;" id="text-hotline">0812-9154-2134</div>
+              <div style="font-size: 0.92rem; font-weight: 700; color: #0d7a57; margin-bottom: 1rem;"><i class="fa-solid fa-user-shield"></i> Koordinator: Ustadz Tegar</div>
               <div style="display: flex; gap: 0.75rem;">
-                <a href="tel:081234567890" class="btn btn-danger" style="flex: 1;">
+                <a href="tel:081291542134" class="btn btn-danger" style="flex: 1;">
                   <i class="fa-solid fa-phone"></i> Telepon Sekarang
                 </a>
-                <a href="https://wa.me/6281234567890?text=Assalamu'alaikum%20saya%20butuh%20ambulan%20darurat" target="_blank" class="btn btn-primary" style="flex: 1;">
+                <a href="https://wa.me/6281291542134?text=Assalamu'alaikum%20Ustadz%20Tegar,%20saya%20butuh%20ambulan%20darurat%20Ponpes%20Imam%20Syafi'i" target="_blank" class="btn btn-primary" style="flex: 1;">
                   <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp
                 </a>
               </div>
@@ -733,10 +735,10 @@
             <div class="card">
               <h3 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-location-dot text-primary"></i> Alamat Posko Ambulan</h3>
               <p style="color: #1e293b; font-weight: 600; line-height: 1.6; margin-bottom: 1rem;" id="text-alamat-ponpes">
-                Kompleks Pondok Pesantren Imam Syafi'i Brebes<br>
-                Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah 52253
+                Posko Armada Ambulan Ponpes Imam Syafi'i Brebes<br>
+                Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218
               </p>
-              <a href="https://maps.google.com/?q=Pondok+Pesantren+Imam+Syafii+Brebes" target="_blank" class="btn btn-outline btn-block">
+              <a href="https://maps.google.com/?q=Jl.+Terusan+Islamic+Center+Sigempol+Limbangan+Wetan+Brebes" target="_blank" class="btn btn-outline btn-block">
                 <i class="fa-solid fa-map-location-dot"></i> Buka Rute Google Maps
               </a>
             </div>
@@ -808,7 +810,7 @@
     <!-- Sidebar Admin -->
     <aside class="admin-sidebar" id="admin-sidebar">
       <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <img src="assets/logo.svg" alt="Admin" style="width: 38px; height: 38px; border-radius: 8px;">
+        <img src="assets/logo.png" alt="Admin" style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain;">
         <div>
           <div style="font-weight: 800; font-size: 0.95rem; color: #ffffff;">ADMIN AMBULAN</div>
           <div style="font-size: 0.75rem; color: #10b981;" id="admin-profile-name">Ustadz Admin</div>
@@ -1207,17 +1209,17 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
               <div class="form-group">
                 <label class="form-label">Hotline Darurat Ambulan:</label>
-                <input type="text" id="setting-hotline" class="form-input" value="0812-3456-7890">
+                <input type="text" id="setting-hotline" class="form-input" value="0812-9154-2134 (Ustadz Tegar)">
               </div>
               <div class="form-group">
-                <label class="form-label">WhatsApp Konfirmasi:</label>
-                <input type="text" id="setting-wa-konfirmasi" class="form-input" value="6281234567890">
+                <label class="form-label">WhatsApp Konfirmasi / Hotline:</label>
+                <input type="text" id="setting-wa-konfirmasi" class="form-input" value="6281291542134">
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Alamat Pesantren:</label>
-              <textarea id="setting-alamat" class="form-textarea" rows="2">Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah 52253</textarea>
+              <label class="form-label">Alamat Posko / Pesantren:</label>
+              <textarea id="setting-alamat" class="form-textarea" rows="2">Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218</textarea>
             </div>
 
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
@@ -1555,10 +1557,10 @@
         </div>
 
         <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
-          <a href="tel:081234567890" class="btn btn-danger" style="flex: 1; padding: 0.85rem;">
-            <i class="fa-solid fa-phone"></i> Hubungi Driver
+          <a href="tel:081291542134" class="btn btn-danger" style="flex: 1; padding: 0.85rem;">
+            <i class="fa-solid fa-phone"></i> Hubungi Ustadz Tegar
           </a>
-          <a href="https://wa.me/6281234567890?text=Assalamu'alaikum%20Ambulan%20Maisya,%20kami%20membutuhkan%20bantuan%20ambulan%20segera" target="_blank" class="btn btn-primary" style="flex: 1; padding: 0.85rem;">
+          <a href="https://wa.me/6281291542134?text=Assalamu'alaikum%20Ustadz%20Tegar,%20kami%20membutuhkan%20bantuan%20ambulan%20segera" target="_blank" class="btn btn-primary" style="flex: 1; padding: 0.85rem;">
             <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp
           </a>
         </div>
@@ -1576,12 +1578,12 @@
   <div class="print-only" style="display: none; padding: 2rem; font-family: serif; color: #000000;">
     <!-- Kop Surat -->
     <div style="display: flex; align-items: center; justify-content: center; gap: 1.5rem; border-bottom: 3px double #000000; padding-bottom: 1rem; margin-bottom: 1.5rem;">
-      <img src="assets/logo.svg" alt="Logo" style="width: 80px; height: 80px;">
+      <img src="assets/logo-ponpes.png" alt="Logo Ponpes" style="width: 80px; height: 80px; object-fit: contain;">
       <div style="text-align: center;">
         <h2 style="font-size: 1.4rem; font-weight: bold; margin: 0; text-transform: uppercase;">YAYASAN IMAM SYAFII BREBES</h2>
         <h3 style="font-size: 1.15rem; margin: 0; text-transform: uppercase;">PONDOK PESANTREN IMAM SYAFI'I</h3>
-        <div style="font-size: 0.85rem;">UNIT LAYANAN AMBULAN MEDIS & SOSIAL KEMANUSIAAN</div>
-        <div style="font-size: 0.8rem;">Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah 52253 &bull; Hotline: 0812-3456-7890</div>
+        <div style="font-size: 0.85rem; font-weight: bold;">UNIT LAYANAN AMBULAN MEDIS &amp; SOSIAL KEMANUSIAAN</div>
+        <div style="font-size: 0.8rem;">Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218 &bull; Hotline: 0812-9154-2134 (Ustadz Tegar)</div>
       </div>
     </div>
 

@@ -357,8 +357,8 @@ class PublicPortal {
         form.reset();
         window.app.closeModal('modal-panggil-ambulan');
 
-        // Buka WhatsApp Otomatis ke Hotline Ambulan dengan format darurat
-        const hotlineNum = "6281234567890";
+        // Buka WhatsApp Otomatis ke Hotline Ambulan dengan format darurat (Ustadz Tegar)
+        const hotlineNum = "6281291542134";
         const pesanWA = encodeURIComponent(
           `*PERMOHONAN AMBULAN DARURAT MAISYA*\n` +
           `-----------------------------------\n` +

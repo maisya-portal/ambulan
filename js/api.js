@@ -23,12 +23,12 @@ const INITIAL_DATABASE = {
     nama_program: "Pengadaan & Operasional Ambulan Medis Ponpes Imam Syafi'i Brebes",
     rekening_bsi: "7123456789 a.n. YAYASAN IMAM SYAFII BREBES",
     rekening_muamalat: "5010099888 a.n. Ponpes Imam Syafi'i Brebes",
-    hotline_darurat: "0812-3456-7890",
-    wa_konfirmasi: "6281234567890",
-    alamat_ponpes: "Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah 52253"
+    hotline_darurat: "0812-9154-2134 (Ustadz Tegar)",
+    wa_konfirmasi: "6281291542134",
+    alamat_ponpes: "Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218"
   },
   users: [
-    { id: "USR-001", username: "admin", password: "admin123", nama: "Super Admin Maisya", role: "superadmin", no_hp: "081234567890", status: "aktif" },
+    { id: "USR-001", username: "admin", password: "admin123", nama: "Super Admin Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" },
     { id: "USR-002", username: "verifikator", password: "maisya2026", nama: "Ustadz Ridwan (Keuangan)", role: "verifikator", no_hp: "081298765432", status: "aktif" },
     { id: "USR-003", username: "driver1", password: "driver123", nama: "Pak Slamet (Driver Ambulan)", role: "driver", no_hp: "081345678901", status: "aktif" }
   ],
@@ -51,10 +51,12 @@ class AmbulanApi {
     localStorage.setItem(ApiConfig.APPS_SCRIPT_URL_KEY, ApiConfig.DEFAULT_APPS_SCRIPT_URL);
     localStorage.setItem(ApiConfig.USE_ONLINE_MODE_KEY, 'true');
 
-    const cleanedFlag = localStorage.getItem('maisya_clean_production_v2');
+    const cleanedFlag = localStorage.getItem('maisya_clean_production_v3');
     if (!cleanedFlag) {
-      localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(INITIAL_DATABASE));
-      localStorage.setItem('maisya_clean_production_v2', 'true');
+      const existing = this.getDb();
+      existing.settings = INITIAL_DATABASE.settings;
+      localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(existing));
+      localStorage.setItem('maisya_clean_production_v3', 'true');
     } else if (!localStorage.getItem(ApiConfig.LOCAL_DB_KEY)) {
       localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(INITIAL_DATABASE));
     }

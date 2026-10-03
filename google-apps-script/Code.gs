@@ -43,16 +43,16 @@ function initDatabase() {
         ["nama_program", "Pengadaan & Operasional Ambulan Medis Ponpes Imam Syafi'i Brebes", new Date().toISOString()],
         ["rekening_bsi", "7123456789 - BSI a.n. YAYASAN IMAM SYAFII BREBES", new Date().toISOString()],
         ["rekening_muamalat", "5010099888 - Bank Muamalat a.n. Ponpes Imam Syafi'i", new Date().toISOString()],
-        ["hotline_darurat", "0812-3456-7890", new Date().toISOString()],
-        ["wa_konfirmasi", "6281234567890", new Date().toISOString()],
-        ["alamat_ponpes", "Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah", new Date().toISOString()]
+        ["hotline_darurat", "0812-9154-2134 (Ustadz Tegar)", new Date().toISOString()],
+        ["wa_konfirmasi", "6281291542134", new Date().toISOString()],
+        ["alamat_ponpes", "Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218", new Date().toISOString()]
       ]
     },
     {
       name: "users",
       headers: ["id", "username", "password", "nama", "role", "no_hp", "status", "created_at"],
       defaults: [
-        ["USR-001", "admin", "admin123", "Super Admin Maisya", "superadmin", "081234567890", "aktif", new Date().toISOString()],
+        ["USR-001", "admin", "admin123", "Super Admin Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()],
         ["USR-002", "verifikator", "maisya2026", "Ustadz Ridwan (Keuangan)", "verifikator", "081298765432", "aktif", new Date().toISOString()],
         ["USR-003", "driver1", "driver123", "Pak Slamet (Driver Ambulan)", "driver", "081345678901", "aktif", new Date().toISOString()]
       ]
