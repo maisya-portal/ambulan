@@ -29,21 +29,22 @@
        HEADER / NAVBAR
        ========================================================================= -->
   <header class="site-header" id="site-header">
-    <div class="container">
+    <div class="header-top-accent"></div>
+    <div class="container header-container">
       <div class="header-inner">
         <!-- Logo & Brand -->
         <div class="brand-wrapper" onclick="window.app.navigateTo('beranda')">
           <img src="assets/logo.svg" alt="Logo Ambulan Maisya" class="brand-logo">
           <div class="brand-info">
             <span class="brand-title">
-              AMBULAN MAISYA <i class="fa-solid fa-truck-medical text-primary" style="color: #0d7a57; font-size: 0.95rem;"></i>
+              AMBULAN MAISYA <span class="brand-badge"><i class="fa-solid fa-truck-medical"></i></span>
             </span>
             <span class="brand-subtitle">Ponpes Imam Syafi'i Brebes</span>
           </div>
         </div>
 
         <!-- Navigation Menu Desktop -->
-        <nav>
+        <nav class="desktop-nav">
           <ul class="nav-menu">
             <li><a class="nav-link active" data-view="beranda"><i class="fa-solid fa-house"></i> Beranda</a></li>
             <li><a class="nav-link" data-view="program"><i class="fa-solid fa-ambulance"></i> Program</a></li>
@@ -69,9 +70,21 @@
   </header>
 
   <!-- Emergency Ticker Bar -->
-  <div style="background: #b91c1c; color: #ffffff; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-align: center;">
-    <i class="fa-solid fa-triangle-exclamation"></i>
-    <span>SIAGA DARURAT 24 JAM: Hotline Ambulan Ponpes Imam Syafi'i Brebes <strong>0812-3456-7890</strong> (100% Gratis Santri & Dhuafa)</span>
+  <div class="emergency-ticker-bar">
+    <div class="container ticker-container">
+      <div class="ticker-badge">
+        <span class="ticker-pulse-dot"></span>
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>SIAGA 24 JAM</span>
+      </div>
+      <div class="ticker-content">
+        <span>Hotline Ambulan Ponpes Imam Syafi'i Brebes:</span>
+        <a href="tel:081234567890" class="ticker-hotline" title="Hubungi Hotline Ambulan">
+          <i class="fa-brands fa-whatsapp"></i> 0812-3456-7890
+        </a>
+        <span class="ticker-free-tag"><i class="fa-solid fa-circle-check"></i> 100% Gratis Santri &amp; Dhuafa</span>
+      </div>
+    </div>
   </div>
 
   <!-- =========================================================================
