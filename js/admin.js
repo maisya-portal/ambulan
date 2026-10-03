@@ -329,16 +329,42 @@ class AdminPortal {
     const tbody = document.getElementById('table-body-admin-users');
     if (!tbody) return;
 
-    tbody.innerHTML = this.adminData.users.map(u => `
-      <tr>
-        <td style="font-family: monospace;">${u.id}</td>
-        <td><strong>${u.username}</strong></td>
-        <td>${u.nama}</td>
-        <td><span class="badge badge-primary">${u.role}</span></td>
-        <td>${u.no_hp || '-'}</td>
-        <td><span class="badge badge-success">${u.status}</span></td>
-      </tr>
-    `).join('');
+    const currentLoggedInUser = this.getCurrentUser();
+
+    tbody.innerHTML = this.adminData.users.map(u => {
+      let roleBadge = 'badge-primary';
+      if (u.role === 'superadmin') roleBadge = 'badge-success';
+      if (u.role === 'driver') roleBadge = 'badge-warning';
+
+      const isProtected = u.username === 'admin' || (currentLoggedInUser && currentLoggedInUser.username === u.username);
+
+      return `
+        <tr>
+          <td style="font-family: monospace; font-size: 0.85rem; font-weight: 600;">${u.id}</td>
+          <td><strong>${u.username}</strong></td>
+          <td>${u.nama}</td>
+          <td><span class="badge ${roleBadge}">${(u.role || '').toUpperCase()}</span></td>
+          <td>${u.no_hp || '-'}</td>
+          <td><span class="badge ${u.status === 'aktif' ? 'badge-success' : 'badge-danger'}">${(u.status || 'aktif').toUpperCase()}</span></td>
+          <td style="text-align: center;">
+            <div style="display: inline-flex; gap: 0.4rem; justify-content: center;">
+              <button class="btn btn-sm btn-outline" title="Edit Pengguna" onclick="window.adminPortal.openEditUserModal('${u.id}')" style="padding: 0.35rem 0.65rem;">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+              </button>
+              ${isProtected ? `
+                <button class="btn btn-sm btn-outline" disabled title="Akun utama/sedang aktif tidak dapat dihapus" style="opacity: 0.4; cursor: not-allowed; padding: 0.35rem 0.65rem;">
+                  <i class="fa-solid fa-lock"></i>
+                </button>
+              ` : `
+                <button class="btn btn-sm btn-danger" title="Hapus Pengguna" onclick="window.adminPortal.deleteUser('${u.id}', '${u.username}')" style="padding: 0.35rem 0.65rem;">
+                  <i class="fa-solid fa-trash"></i> Hapus
+                </button>
+              `}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
   }
 
   renderAuditLog() {
@@ -541,6 +567,61 @@ class AdminPortal {
     }
   }
 
+  openEditUserModal(userId) {
+    if (!this.adminData || !this.adminData.users) return;
+    const user = this.adminData.users.find(u => u.id === userId);
+    if (!user) {
+      window.app.showToast('Data user tidak ditemukan', 'error');
+      return;
+    }
+
+    const inputId = document.getElementById('edit-user-id');
+    const inputUsername = document.getElementById('edit-user-username');
+    const inputNama = document.getElementById('edit-user-nama');
+    const selectRole = document.getElementById('edit-user-role');
+    const inputHp = document.getElementById('edit-user-hp');
+    const selectStatus = document.getElementById('edit-user-status');
+    const inputPassword = document.getElementById('edit-user-password');
+
+    if (inputId) inputId.value = user.id;
+    if (inputUsername) inputUsername.value = user.username;
+    if (inputNama) inputNama.value = user.nama || '';
+    if (selectRole) selectRole.value = user.role || 'verifikator';
+    if (inputHp) inputHp.value = user.no_hp || '';
+    if (selectStatus) selectStatus.value = user.status || 'aktif';
+    if (inputPassword) inputPassword.value = '';
+
+    window.app.openModal('modal-edit-user');
+  }
+
+  async deleteUser(userId, username) {
+    const currentUser = this.getCurrentUser();
+    if (username === 'admin') {
+      window.app.showToast('Akun super administrator utama tidak dapat dihapus!', 'warning');
+      return;
+    }
+
+    if (currentUser && currentUser.username === username) {
+      window.app.showToast('Anda tidak dapat menghapus akun yang sedang Anda gunakan!', 'warning');
+      return;
+    }
+
+    const isConfirmed = confirm(`Apakah Anda yakin ingin menghapus akun pengguna "${username}"? Tindakan ini tidak dapat dibatalkan.`);
+    if (!isConfirmed) return;
+
+    try {
+      const res = await window.ambulanApi.manageUser('delete', { id: userId }, currentUser?.nama || 'Admin');
+      if (res && res.success) {
+        window.app.showToast(`Akun pengguna ${username} berhasil dihapus.`, 'success');
+        await this.loadAdminData();
+      } else {
+        window.app.showToast('Gagal menghapus user: ' + (res.message || 'Error'), 'error');
+      }
+    } catch (err) {
+      window.app.showToast('Terjadi kesalahan: ' + err.toString(), 'error');
+    }
+  }
+
   terbilang(bilangan) {
     const angka = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
     let hasil = "";
@@ -684,6 +765,43 @@ class AdminPortal {
           }
         } catch (err) {
           window.app.showToast('Gagal menambahkan user: ' + err.toString(), 'error');
+        }
+      });
+    }
+
+    // Form Edit User
+    const formEditUser = document.getElementById('form-edit-user');
+    if (formEditUser) {
+      formEditUser.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-user-id').value;
+        const nama = document.getElementById('edit-user-nama').value.trim();
+        const role = document.getElementById('edit-user-role').value;
+        const no_hp = document.getElementById('edit-user-hp').value.trim();
+        const status = document.getElementById('edit-user-status').value;
+        const password = document.getElementById('edit-user-password').value.trim();
+
+        if (!id || !nama) {
+          window.app.showToast('Nama lengkap tidak boleh kosong', 'warning');
+          return;
+        }
+
+        const data = { id, nama, role, no_hp, status };
+        if (password) {
+          data.password = password;
+        }
+
+        try {
+          const res = await window.ambulanApi.manageUser('edit', data, this.getCurrentUser()?.nama || 'Admin');
+          if (res.success) {
+            window.app.showToast('Data pengguna berhasil diperbarui!', 'success');
+            window.app.closeModal('modal-edit-user');
+            await this.loadAdminData();
+          } else {
+            window.app.showToast('Gagal memperbarui user: ' + (res.message || 'Error'), 'error');
+          }
+        } catch (err) {
+          window.app.showToast('Gagal memperbarui user: ' + err.toString(), 'error');
         }
       });
     }

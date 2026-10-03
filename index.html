@@ -1104,6 +1104,7 @@
                   <th>Peran (Role)</th>
                   <th>Nomor HP</th>
                   <th>Status</th>
+                  <th style="text-align: center; min-width: 140px;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="table-body-admin-users">
@@ -1220,31 +1221,48 @@
        MODALS
        ========================================================================= -->
 
-  <!-- Modal: Login Admin -->
+  <!-- Modal: Login Admin (Elegant, Clean, Islamic Emerald & Gold) -->
   <div class="modal-backdrop" id="modal-login-admin">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <h3 class="modal-title"><i class="fa-solid fa-lock text-primary"></i> Masuk ke Portal Admin</h3>
-        <button class="modal-close">&times;</button>
+    <div class="modal-dialog" style="max-width: 440px; border-radius: 24px; overflow: hidden; border: none; box-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.35);">
+      <!-- Header with Gradient and Emblem -->
+      <div style="background: linear-gradient(135deg, #064e3b 0%, #0d7a57 60%, #047857 100%); padding: 2.25rem 2rem 1.75rem; text-align: center; color: #ffffff; position: relative;">
+        <button class="modal-close" style="position: absolute; top: 16px; right: 18px; color: rgba(255,255,255,0.7); font-size: 1.5rem; border: none; background: transparent; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">&times;</button>
+        <div style="width: 68px; height: 68px; margin: 0 auto 0.85rem; background: rgba(255, 255, 255, 0.12); border: 2px solid rgba(251, 191, 36, 0.6); border-radius: 22px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+          <i class="fa-solid fa-shield-halved" style="font-size: 2rem; color: #fbbf24;"></i>
+        </div>
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 800; margin: 0; color: #ffffff; letter-spacing: -0.01em;">Portal Pengelola</h3>
+        <p style="font-size: 0.82rem; color: #a7f3d0; margin-top: 0.35rem; font-weight: 500;">Pondok Pesantren Imam Syafi'i Brebes</p>
       </div>
-      <form id="form-login-admin">
-        <div class="modal-body">
-          <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.25rem;">
-            Silakan masukkan kredensial akun pengelola Pondok Pesantren Imam Syafi'i Brebes.
-          </p>
-          <div class="form-group">
-            <label class="form-label">Username:</label>
-            <input type="text" id="login-username" class="form-input" placeholder="admin" value="admin" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Kata Sandi (Password):</label>
-            <input type="password" id="login-password" class="form-input" placeholder="admin123" value="admin123" required>
-            <div class="form-helper">Akun bawaan demo: <strong>admin</strong> / sandi: <strong>admin123</strong></div>
+
+      <!-- Login Form -->
+      <form id="form-login-admin" style="padding: 1.75rem 2rem 2rem; background: #ffffff;">
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label class="form-label" style="font-size: 0.85rem; color: #334155; font-weight: 700; display: flex; align-items: center; gap: 0.45rem;">
+            <i class="fa-regular fa-user" style="color: #0d7a57;"></i> Nama Pengguna (Username)
+          </label>
+          <div style="position: relative;">
+            <input type="text" id="login-username" class="form-input" placeholder="Masukkan username pengelola" required autocomplete="username" style="padding: 0.8rem 1rem; border-radius: 12px; font-size: 0.95rem; border: 1.5px solid #e2e8f0; width: 100%;">
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline modal-close">Batal</button>
-          <button type="submit" class="btn btn-primary">Masuk ke Portal Admin</button>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" style="font-size: 0.85rem; color: #334155; font-weight: 700; display: flex; align-items: center; gap: 0.45rem;">
+            <i class="fa-solid fa-lock" style="color: #0d7a57;"></i> Kata Sandi (Password)
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="login-password" class="form-input" placeholder="Masukkan kata sandi" required autocomplete="current-password" style="padding: 0.8rem 2.8rem 0.8rem 1rem; border-radius: 12px; font-size: 0.95rem; border: 1.5px solid #e2e8f0; width: 100%;">
+            <button type="button" id="btn-toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; font-size: 1rem; outline: none;" title="Lihat/Sembunyikan Sandi">
+              <i class="fa-regular fa-eye" id="icon-toggle-password"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="padding: 0.85rem; border-radius: 12px; font-size: 1rem; font-weight: 700; box-shadow: 0 6px 18px rgba(13, 122, 87, 0.35);">
+          <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Sistem Admin
+        </button>
+
+        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #f1f5f9; text-align: center; font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+          <i class="fa-solid fa-shield-check" style="color: #10b981;"></i> Akses Terproteksi &bull; Yayasan Imam Syafi'i Brebes
         </div>
       </form>
     </div>
@@ -1389,6 +1407,58 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-outline modal-close">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Edit User -->
+  <div class="modal-backdrop" id="modal-edit-user">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-user-pen text-primary"></i> Edit Data Pengguna</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="form-edit-user">
+        <input type="hidden" id="edit-user-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Username:</label>
+            <input type="text" id="edit-user-username" class="form-input" disabled style="background: #f1f5f9; cursor: not-allowed; font-weight: 700;">
+            <div class="form-helper">Username unik tidak dapat diubah.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nama Lengkap:</label>
+            <input type="text" id="edit-user-nama" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Peran (Role):</label>
+            <select id="edit-user-role" class="form-select">
+              <option value="verifikator">Verifikator Keuangan</option>
+              <option value="driver">Driver Ambulan</option>
+              <option value="superadmin">Super Administrator</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nomor WhatsApp / HP:</label>
+            <input type="tel" id="edit-user-hp" class="form-input" placeholder="08xxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status Akun:</label>
+            <select id="edit-user-status" class="form-select">
+              <option value="aktif">Aktif</option>
+              <option value="nonaktif">Nonaktif</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kata Sandi Baru (Opsional):</label>
+            <input type="password" id="edit-user-password" class="form-input" placeholder="Kosongkan jika tidak ingin mengubah sandi">
+            <div class="form-helper">Biarkan kosong bila tidak ingin mengganti kata sandi pengguna ini.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
         </div>
       </form>
     </div>

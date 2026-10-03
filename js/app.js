@@ -190,20 +190,35 @@ class AmbulanApp {
   initLoginHandler() {
     const formLogin = document.getElementById('form-login-admin');
     if (formLogin) {
+      // Toggle Password Visibility
+      const btnToggle = document.getElementById('btn-toggle-password');
+      const inputPass = document.getElementById('login-password');
+      const iconToggle = document.getElementById('icon-toggle-password');
+
+      if (btnToggle && inputPass && iconToggle) {
+        btnToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          const isPassword = inputPass.type === 'password';
+          inputPass.type = isPassword ? 'text' : 'password';
+          iconToggle.className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+        });
+      }
+
       formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value.trim();
 
         if (!username || !password) {
-          this.showToast('Harap masukkan username dan password', 'warning');
+          this.showToast('Harap masukkan username dan kata sandi', 'warning');
           return;
         }
 
         const btn = formLogin.querySelector('button[type="submit"]');
+        const originalText = btn ? btn.innerHTML : 'Masuk ke Sistem Admin';
         if (btn) {
           btn.disabled = true;
-          btn.innerText = 'Memverifikasi...';
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memverifikasi...';
         }
 
         try {
@@ -215,18 +230,20 @@ class AmbulanApp {
             this.showToast(`Ahlan wa Sahlan, ${res.user.nama}!`, 'success');
             this.closeModal('modal-login-admin');
             formLogin.reset();
+            if (inputPass) inputPass.type = 'password';
+            if (iconToggle) iconToggle.className = 'fa-regular fa-eye';
 
             await window.adminPortal.init();
             this.navigateTo('admin-dashboard');
           } else {
-            this.showToast(res.message || 'Login gagal!', 'error');
+            this.showToast(res.message || 'Login gagal! Periksa username & kata sandi.', 'error');
           }
         } catch (err) {
           this.showToast('Error login: ' + err.toString(), 'error');
         } finally {
           if (btn) {
             btn.disabled = false;
-            btn.innerText = 'Masuk ke Portal Admin';
+            btn.innerHTML = originalText;
           }
         }
       });
