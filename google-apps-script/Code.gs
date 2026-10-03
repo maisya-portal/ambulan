@@ -60,38 +60,22 @@ function initDatabase() {
     {
       name: "donatur",
       headers: ["id", "nama", "no_wa", "email", "alamat", "total_donasi", "frekuensi", "created_at", "updated_at"],
-      defaults: [
-        ["DTR-001", "H. Ahmad Syafii", "08123400001", "ahmad@gmail.com", "Brebes", 5000000, 2, new Date().toISOString(), new Date().toISOString()],
-        ["DTR-002", "Hamba Allah", "08123400002", "-", "Tegal", 1000000, 1, new Date().toISOString(), new Date().toISOString()],
-        ["DTR-003", "Keluarga Santri Maisya", "08123400003", "santri@gmail.com", "Cirebon", 2500000, 3, new Date().toISOString(), new Date().toISOString()]
-      ]
+      defaults: []
     },
     {
       name: "donasi_masuk",
       headers: ["id", "tanggal", "nama_donatur", "no_wa", "nominal", "metode_bayar", "program", "doa_pesan", "bukti_transfer", "status", "verified_by", "verified_at", "alasan_tolak"],
-      defaults: [
-        ["DON-20260301-001", "2026-03-01 09:30:00", "H. Ahmad Syafii", "08123400001", 3000000, "BSI Transfer", "Pengadaan Armada", "Semoga berkah untuk umat & santri", "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500", "Verified", "admin", "2026-03-01 10:00:00", ""],
-        ["DON-20260305-002", "2026-03-05 14:15:00", "Hamba Allah", "08123400002", 1000000, "QRIS", "Operasional Medis", "Bismillah niat sedekah jariyah orang tua", "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500", "Verified", "admin", "2026-03-05 14:30:00", ""],
-        ["DON-20260310-003", "2026-03-10 16:45:00", "Keluarga Santri Maisya", "08123400003", 2500000, "BSI Transfer", "Pengadaan Armada", "Semoga bermanfaat untuk pertolongan medis santri", "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500", "Verified", "admin", "2026-03-10 17:00:00", ""],
-        ["DON-20260315-004", "2026-03-15 11:20:00", "dr. Hendra Sp.A", "08139887766", 500000, "BSI Transfer", "Operasional Medis", "Semoga ambulan segera terealisasi & bermanfaat", "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500", "Pending", "", "", ""]
-      ]
+      defaults: []
     },
     {
       name: "pengeluaran",
       headers: ["id", "tanggal", "kategori", "deskripsi", "nominal", "pic", "bukti_nota", "created_at"],
-      defaults: [
-        ["EXP-20260302-001", "2026-03-02", "Perawatan Armada", "Service berkala & ganti oli ambulan darurat", 450000, "Pak Slamet", "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500", new Date().toISOString()],
-        ["EXP-20260308-002", "2026-03-08", "Oksigen & Medis", "Isi ulang 2 tabung oksigen medis ambulan", 200000, "Ustadz Ridwan", "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500", new Date().toISOString()],
-        ["EXP-20260312-003", "2026-03-12", "BBM", "BBM Pertamax pengantaran pasien rujukan santri ke RSUD Brebes", 250000, "Pak Slamet", "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500", new Date().toISOString()]
-      ]
+      defaults: []
     },
     {
       name: "layanan_ambulan",
       headers: ["id", "tanggal", "nama_pemohon", "no_wa", "nama_pasien", "kategori_pasien", "tujuan_faskes", "alamat_jemput", "driver", "status", "catatan"],
-      defaults: [
-        ["AMB-20260303-001", "2026-03-03 08:30:00", "Ustadz Fauzan", "08123456789", "Ahmad Fauzi (Santri)", "Santri", "RSUD Brebes", "Asrama Putra Ponpes Imam Syafi'i", "Pak Slamet", "Selesai", "Kondisi sesak napas akut, tertangani dengan baik"],
-        ["AMB-20260311-002", "2026-03-11 19:40:00", "Ibu Siti Mariyam", "08567891234", "Bpk. Suwandi (68 th)", "Dhuafa Warga", "RSI Harapan Anda Tegal", "Desa Luwungragi RT 03/02", "Pak Slamet", "Selesai", "Layanan ambulan gratis dhuafa"]
-      ]
+      defaults: []
     },
     {
       name: "audit_log",
@@ -118,6 +102,43 @@ function initDatabase() {
 }
 
 /**
+ * Membersihkan seluruh baris data demo di spreadsheet
+ */
+function clearDemoData() {
+  const ss = getSS();
+  const sheetsToClear = ["donasi_masuk", "pengeluaran", "donatur", "layanan_ambulan"];
+  
+  sheetsToClear.forEach(function(name) {
+    const sheet = ss.getSheetByName(name);
+    if (sheet) {
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        sheet.deleteRows(2, lastRow - 1);
+      }
+    }
+  });
+
+  // Reset audit log
+  const auditSheet = ss.getSheetByName("audit_log");
+  if (auditSheet) {
+    const lastRow = auditSheet.getLastRow();
+    if (lastRow > 1) {
+      auditSheet.deleteRows(2, lastRow - 1);
+    }
+    auditSheet.appendRow([
+      "AUD-001",
+      Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss"),
+      "system",
+      "CLEAN_DATABASE",
+      "Seluruh data demo spreadsheet berhasil dibersihkan",
+      "-"
+    ]);
+  }
+
+  return { success: true, message: "Seluruh data demo di spreadsheet berhasil dibersihkan!" };
+}
+
+/**
  * Handle GET Requests (Read public and admin data)
  */
 function doGet(e) {
@@ -128,6 +149,9 @@ function doGet(e) {
     switch (action) {
       case "init":
         responseData = initDatabase();
+        break;
+      case "clearDemoData":
+        responseData = clearDemoData();
         break;
       case "getPublicData":
         responseData = getPublicData();
@@ -194,6 +218,9 @@ function doPost(e) {
         break;
       case "updateSettings":
         responseData = updateSettings(data);
+        break;
+      case "clearDemoData":
+        responseData = clearDemoData();
         break;
       default:
         responseData = { success: false, message: "Action POST tidak valid: " + action };

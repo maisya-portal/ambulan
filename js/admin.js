@@ -622,6 +622,21 @@ class AdminPortal {
     }
   }
 
+  async clearSpreadsheetDemo() {
+    const isSure = confirm("PERINGATAN: Apakah Anda yakin ingin membersihkan seluruh data demo (donasi masuk, pengeluaran, donatur) di Google Spreadsheet dan lokal? Tindakan ini akan mengosongkan tabel transaksi agar siap digunakan untuk data riil.");
+    if (!isSure) return;
+
+    try {
+      window.app.showToast("Sedang membersihkan data demo...", "info");
+      const res = await window.ambulanApi.clearDemoData();
+      window.app.showToast(res.message || "Seluruh data demo berhasil dibersihkan!", "success");
+      await this.loadAdminData();
+      await window.publicPortal.refreshPublicData();
+    } catch (e) {
+      window.app.showToast("Gagal membersihkan data demo: " + e.toString(), "error");
+    }
+  }
+
   terbilang(bilangan) {
     const angka = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
     let hasil = "";

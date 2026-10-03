@@ -9,14 +9,14 @@
  */
 
 const ApiConfig = {
-  // URL Deployment Web App Apps Script (Dapat diubah di menu Pengaturan Admin)
+  // URL Deployment Web App Apps Script Resmi Ponpes Imam Syafi'i Brebes
   APPS_SCRIPT_URL_KEY: 'maisya_apps_script_url',
   LOCAL_DB_KEY: 'maisya_ambulan_db_v1',
-  DEFAULT_APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby5t9p_example_ambulan_maisya/exec',
+  DEFAULT_APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzWpWylCScaz13HUfjbdVyMyfYI2ePlrucY0jgfg4DZgJtLc60NXwhycAnOSFE_2SGP/exec',
   USE_ONLINE_MODE_KEY: 'maisya_use_online_mode'
 };
 
-// Seed / Initial Mock Data Ponpes Imam Syafi'i Brebes
+// Database Bersih (Tanpa Data Demo) Ponpes Imam Syafi'i Brebes
 const INITIAL_DATABASE = {
   settings: {
     target_donasi: 250000000,
@@ -28,209 +28,16 @@ const INITIAL_DATABASE = {
     alamat_ponpes: "Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah 52253"
   },
   users: [
-    { id: "USR-001", username: "admin", password: "admin123", nama: "Ustadz Admin Utama", role: "superadmin", no_hp: "081234567890", status: "aktif" },
+    { id: "USR-001", username: "admin", password: "admin123", nama: "Super Admin Maisya", role: "superadmin", no_hp: "081234567890", status: "aktif" },
     { id: "USR-002", username: "verifikator", password: "maisya2026", nama: "Ustadz Ridwan (Keuangan)", role: "verifikator", no_hp: "081298765432", status: "aktif" },
     { id: "USR-003", username: "driver1", password: "driver123", nama: "Pak Slamet (Driver Ambulan)", role: "driver", no_hp: "081345678901", status: "aktif" }
   ],
-  donatur: [
-    { id: "DTR-001", nama: "H. Ahmad Syafii", no_wa: "08123400001", email: "ahmad@gmail.com", alamat: "Brebes", total_donasi: 15000000, frekuensi: 2, created_at: "2026-03-01 10:00:00" },
-    { id: "DTR-002", nama: "Hamba Allah", no_wa: "08123400002", email: "-", alamat: "Tegal", total_donasi: 5000000, frekuensi: 1, created_at: "2026-03-05 14:00:00" },
-    { id: "DTR-003", nama: "Keluarga Santri Maisya", no_wa: "08123400003", email: "wali@maisya.sch.id", alamat: "Cirebon", total_donasi: 7500000, frekuensi: 3, created_at: "2026-03-10 16:00:00" },
-    { id: "DTR-004", nama: "Alumni Maisya Angkatan 4", no_wa: "08123400004", email: "alumni@maisya.sch.id", alamat: "Jakarta", total_donasi: 12000000, frekuensi: 1, created_at: "2026-03-15 08:30:00" },
-    { id: "DTR-005", nama: "Ibu Hj. Siti Nurhasanah", no_wa: "08123400005", email: "nurhasanah@yahoo.com", alamat: "Bulakamba, Brebes", total_donasi: 3000000, frekuensi: 1, created_at: "2026-03-20 11:15:00" }
-  ],
-  donasi_masuk: [
-    {
-      id: "DON-20260301-001",
-      tanggal: "2026-03-01 09:30:00",
-      nama_donatur: "H. Ahmad Syafii",
-      no_wa: "08123400001",
-      nominal: 15000000,
-      metode_bayar: "BSI Transfer",
-      program: "Pengadaan Armada",
-      doa_pesan: "Semoga armada ambulan lekas terealisasi dan menjadi amal jariyah yang mengalir.",
-      bukti_transfer: "assets/logo.svg",
-      status: "Verified",
-      verified_by: "admin",
-      verified_at: "2026-03-01 10:15:00",
-      alasan_tolak: ""
-    },
-    {
-      id: "DON-20260305-002",
-      tanggal: "2026-03-05 14:15:00",
-      nama_donatur: "Hamba Allah",
-      no_wa: "08123400002",
-      nominal: 5000000,
-      metode_bayar: "QRIS",
-      program: "Pengadaan Armada",
-      doa_pesan: "Bismillah, sedekah atas nama kedua orang tua tercinta.",
-      bukti_transfer: "assets/logo.svg",
-      status: "Verified",
-      verified_by: "admin",
-      verified_at: "2026-03-05 14:30:00",
-      alasan_tolak: ""
-    },
-    {
-      id: "DON-20260310-003",
-      tanggal: "2026-03-10 16:45:00",
-      nama_donatur: "Keluarga Santri Maisya",
-      no_wa: "08123400003",
-      nominal: 7500000,
-      metode_bayar: "BSI Transfer",
-      program: "Pengadaan Armada",
-      doa_pesan: "Semoga bermanfaat untuk pertolongan medis santri penghafal Al-Qur'an.",
-      bukti_transfer: "assets/logo.svg",
-      status: "Verified",
-      verified_by: "verifikator",
-      verified_at: "2026-03-10 17:00:00",
-      alasan_tolak: ""
-    },
-    {
-      id: "DON-20260315-004",
-      tanggal: "2026-03-15 08:30:00",
-      nama_donatur: "Alumni Maisya Angkatan 4",
-      no_wa: "08123400004",
-      nominal: 12000000,
-      metode_bayar: "Bank Muamalat",
-      program: "Pengadaan Armada",
-      doa_pesan: "Wujud bakti alumni untuk almamater dan santri dhuafa.",
-      bukti_transfer: "assets/logo.svg",
-      status: "Verified",
-      verified_by: "admin",
-      verified_at: "2026-03-15 09:00:00",
-      alasan_tolak: ""
-    },
-    {
-      id: "DON-20260320-005",
-      tanggal: "2026-03-20 11:15:00",
-      nama_donatur: "Ibu Hj. Siti Nurhasanah",
-      no_wa: "08123400005",
-      nominal: 3000000,
-      metode_bayar: "QRIS",
-      program: "Operasional Medis",
-      doa_pesan: "Semoga barokah dan santri yang sakit lekas sembuh.",
-      bukti_transfer: "assets/logo.svg",
-      status: "Verified",
-      verified_by: "admin",
-      verified_at: "2026-03-20 12:00:00",
-      alasan_tolak: ""
-    },
-    {
-      id: "DON-20260328-006",
-      tanggal: "2026-03-28 10:20:00",
-      nama_donatur: "dr. Hendra Sp.A",
-      no_wa: "08139887766",
-      nominal: 2500000,
-      metode_bayar: "BSI Transfer",
-      program: "Operasional Medis",
-      doa_pesan: "Untuk stok tabung oksigen dan obat gawat darurat armada.",
-      bukti_transfer: "assets/logo.svg",
-      status: "Pending",
-      verified_by: "",
-      verified_at: "",
-      alasan_tolak: ""
-    },
-    {
-      id: "DON-20260329-007",
-      tanggal: "2026-03-29 15:40:00",
-      nama_donatur: "Hamba Allah",
-      no_wa: "085712345678",
-      nominal: 1000000,
-      metode_bayar: "QRIS",
-      program: "Pengadaan Armada",
-      doa_pesan: "Bismillah semoga barokah",
-      bukti_transfer: "assets/logo.svg",
-      status: "Pending",
-      verified_by: "",
-      verified_at: "",
-      alasan_tolak: ""
-    }
-  ],
-  pengeluaran: [
-    {
-      id: "EXP-20260305-001",
-      tanggal: "2026-03-05",
-      kategori: "Perawatan Armada",
-      deskripsi: "Biaya servis berkala, tune-up & ganti oli mobil darurat",
-      nominal: 650000,
-      pic: "Pak Slamet (Driver)",
-      bukti_nota: "assets/logo.svg"
-    },
-    {
-      id: "EXP-20260312-002",
-      tanggal: "2026-03-12",
-      kategori: "Oksigen & Medis",
-      deskripsi: "Isi ulang 2 tabung oksigen medis besar 6m3 + masker oksigen",
-      nominal: 350000,
-      pic: "Ustadz Ridwan",
-      bukti_nota: "assets/logo.svg"
-    },
-    {
-      id: "EXP-20260318-003",
-      tanggal: "2026-03-18",
-      kategori: "BBM",
-      deskripsi: "BBM Pertamax pengantaran pasien santri rujukan RSUD Brebes & Kardinah Tegal",
-      nominal: 400000,
-      pic: "Pak Slamet (Driver)",
-      bukti_nota: "assets/logo.svg"
-    },
-    {
-      id: "EXP-20260325-004",
-      tanggal: "2026-03-25",
-      kategori: "Operasional Lainnya",
-      deskripsi: "Pembersihan steril disinfektan kabin ambulan & perlengkapan P3K",
-      nominal: 250000,
-      pic: "Pak Slamet (Driver)",
-      bukti_nota: "assets/logo.svg"
-    }
-  ],
-  layanan_ambulan: [
-    {
-      id: "AMB-20260303-001",
-      tanggal: "2026-03-03 08:30:00",
-      nama_pemohon: "Ustadz Fauzan (Pengasuh Asrama)",
-      no_wa: "08123456789",
-      nama_pasien: "Ahmad Fauzi (Santri Kelas 8)",
-      kategori_pasien: "Santri",
-      tujuan_faskes: "RSUD Brebes",
-      alamat_jemput: "Klinik Ponpes Imam Syafi'i Brebes",
-      driver: "Pak Slamet",
-      status: "Selesai",
-      catatan: "Kondisi demam tinggi & dehidrasi, alhamdulillah sudah dirawat dengan baik"
-    },
-    {
-      id: "AMB-20260311-002",
-      tanggal: "2026-03-11 19:40:00",
-      nama_pemohon: "Ibu Siti Mariyam",
-      no_wa: "08567891234",
-      nama_pasien: "Bpk. Suwandi (68 th - Dhuafa)",
-      kategori_pasien: "Dhuafa Warga",
-      tujuan_faskes: "RSI Harapan Anda Tegal",
-      alamat_jemput: "Desa Luwungragi RT 03/02 Bulakamba",
-      driver: "Pak Slamet",
-      status: "Selesai",
-      catatan: "Layanan ambulan 100% gratis warga dhuafa sekitar pesantren"
-    },
-    {
-      id: "AMB-20260322-003",
-      tanggal: "2026-03-22 14:10:00",
-      nama_pemohon: "Keluarga Almarhum",
-      no_wa: "08198765432",
-      nama_pasien: "Jenazah Mbah Rasminah (Warga Desa)",
-      kategori_pasien: "Layanan Jenazah",
-      tujuan_faskes: "TPU Karangsari Brebes",
-      alamat_jemput: "Kediaman Duka Bulakamba Brebes",
-      driver: "Pak Slamet",
-      status: "Selesai",
-      catatan: "Pengantaran jenazah khusyuk tanpa pungutan biaya"
-    }
-  ],
+  donatur: [],
+  donasi_masuk: [],
+  pengeluaran: [],
+  layanan_ambulan: [],
   audit_log: [
-    { id: "AUD-001", timestamp: "2026-03-01 09:00:00", user: "system", action: "INITIALIZE", detail: "Sistem Ambulan Ponpes Imam Syafi'i aktif" },
-    { id: "AUD-002", timestamp: "2026-03-01 10:15:00", user: "admin", action: "VERIFY_DONASI", detail: "Verifikasi donasi DON-20260301-001 (Rp 15.000.000)" },
-    { id: "AUD-003", timestamp: "2026-03-05 14:30:00", user: "admin", action: "VERIFY_DONASI", detail: "Verifikasi donasi DON-20260305-002 (Rp 5.000.000)" },
-    { id: "AUD-004", timestamp: "2026-03-10 17:00:00", user: "verifikator", action: "VERIFY_DONASI", detail: "Verifikasi donasi DON-20260310-003 (Rp 7.500.000)" },
-    { id: "AUD-005", timestamp: "2026-03-12 11:00:00", user: "verifikator", action: "ADD_EXPENSE", detail: "Input pengeluaran tabung oksigen Rp 350.000" }
+    { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "system", action: "INITIALIZE", detail: "Sistem Ambulan Ponpes Imam Syafi'i aktif" }
   ]
 };
 
@@ -240,7 +47,15 @@ class AmbulanApi {
   }
 
   initLocalDb() {
-    if (!localStorage.getItem(ApiConfig.LOCAL_DB_KEY)) {
+    // Selalu pastikan URL Apps Script mengarah ke URL deployment produksi resmi
+    localStorage.setItem(ApiConfig.APPS_SCRIPT_URL_KEY, ApiConfig.DEFAULT_APPS_SCRIPT_URL);
+    localStorage.setItem(ApiConfig.USE_ONLINE_MODE_KEY, 'true');
+
+    const cleanedFlag = localStorage.getItem('maisya_clean_production_v2');
+    if (!cleanedFlag) {
+      localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(INITIAL_DATABASE));
+      localStorage.setItem('maisya_clean_production_v2', 'true');
+    } else if (!localStorage.getItem(ApiConfig.LOCAL_DB_KEY)) {
       localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(INITIAL_DATABASE));
     }
   }
@@ -746,6 +561,38 @@ class AmbulanApi {
     });
     this.saveDb(db);
     return { success: true, message: 'Pengaturan berhasil diperbarui!' };
+  }
+
+  async clearDemoData() {
+    // 1. Panggil endpoint clearDemoData di Google Apps Script (POST & GET)
+    try {
+      await fetch(this.getAppsScriptUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clearDemoData' })
+      });
+    } catch (e) {
+      console.warn("Apps Script clearDemoData POST:", e);
+    }
+
+    try {
+      await fetch(`${this.getAppsScriptUrl()}?action=clearDemoData`);
+    } catch (e) {
+      console.warn("Apps Script clearDemoData GET:", e);
+    }
+
+    // 2. Bersihkan local storage
+    const db = this.getDb();
+    db.donatur = [];
+    db.donasi_masuk = [];
+    db.pengeluaran = [];
+    db.layanan_ambulan = [];
+    db.audit_log = [
+      { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "admin", action: "CLEAN_DATABASE", detail: "Seluruh data demo berhasil dibersihkan" }
+    ];
+    this.saveDb(db);
+
+    return { success: true, message: "Seluruh data demo berhasil dibersihkan dari sistem!" };
   }
 
   resetToDefault() {
