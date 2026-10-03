@@ -358,7 +358,28 @@ class AmbulanApi {
         const url = `${this.getAppsScriptUrl()}?action=getAdminData&token=${token}`;
         const res = await fetch(url);
         const json = await res.json();
-        if (json.success && json.data) return json.data;
+        if (json.success && json.data) {
+          // Normalisasi tipe data string secara defensif
+          if (Array.isArray(json.data.donasi)) {
+            json.data.donasi.forEach(d => {
+              if (d.no_wa !== undefined && d.no_wa !== null) d.no_wa = String(d.no_wa);
+              if (d.id !== undefined && d.id !== null) d.id = String(d.id);
+            });
+          }
+          if (Array.isArray(json.data.donatur)) {
+            json.data.donatur.forEach(d => {
+              if (d.no_wa !== undefined && d.no_wa !== null) d.no_wa = String(d.no_wa);
+              if (d.id !== undefined && d.id !== null) d.id = String(d.id);
+            });
+          }
+          if (Array.isArray(json.data.users)) {
+            json.data.users.forEach(u => {
+              if (u.no_hp !== undefined && u.no_hp !== null) u.no_hp = String(u.no_hp);
+              if (u.id !== undefined && u.id !== null) u.id = String(u.id);
+            });
+          }
+          return json.data;
+        }
       } catch (e) {
         console.warn('Apps script getAdminData failed:', e);
       }

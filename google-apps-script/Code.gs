@@ -469,7 +469,17 @@ function getAdminData() {
     for (let i = 1; i < values.length; i++) {
       const obj = {};
       for (let j = 0; j < headers.length; j++) {
-        obj[headers[j]] = values[i][j];
+        let val = values[i][j];
+        if (val instanceof Date) {
+          try {
+            val = Utilities.formatDate(val, "GMT+7", "yyyy-MM-dd HH:mm:ss");
+          } catch (e) {
+            val = val.toISOString();
+          }
+        } else if (["no_wa", "no_hp", "id", "hotline_darurat", "wa_konfirmasi", "rekening_bsi", "rekening_muamalat"].indexOf(headers[j]) !== -1) {
+          val = (val !== null && val !== undefined) ? String(val).trim() : "";
+        }
+        obj[headers[j]] = val;
       }
       list.push(obj);
     }

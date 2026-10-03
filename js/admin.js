@@ -126,9 +126,9 @@ class AdminPortal {
     const searchQuery = (document.getElementById('search-donasi-input')?.value || '').toLowerCase().trim();
     if (searchQuery) {
       list = list.filter(d =>
-        (d.nama_donatur || '').toLowerCase().includes(searchQuery) ||
-        (d.id || '').toLowerCase().includes(searchQuery) ||
-        (d.no_wa || '').includes(searchQuery)
+        String(d.nama_donatur || '').toLowerCase().includes(searchQuery) ||
+        String(d.id || '').toLowerCase().includes(searchQuery) ||
+        String(d.no_wa || '').includes(searchQuery)
       );
     }
 
@@ -188,20 +188,28 @@ class AdminPortal {
       return;
     }
 
-    tbody.innerHTML = list.map((d, i) => `
-      <tr>
-        <td>#${i + 1}</td>
-        <td><strong>${d.nama}</strong></td>
-        <td>
-          <a href="https://wa.me/${(d.no_wa || '').replace(/[^0-9]/g, '')}" target="_blank" style="color: #10b981; font-weight: 600;">
-            <i class="fa-brands fa-whatsapp"></i> ${d.no_wa || '-'}
-          </a>
-        </td>
-        <td>${d.alamat || '-'}</td>
-        <td style="font-weight: 800; color: #0d7a57;">${formatRp(d.total_donasi)}</td>
-        <td><span class="badge badge-primary">${d.frekuensi || 1}x Donasi</span></td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = list.map((d, i) => {
+      const rawWa = String(d.no_wa || '').trim();
+      let cleanWa = rawWa.replace(/[^0-9]/g, '');
+      if (cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.substring(1);
+
+      return `
+        <tr>
+          <td>#${i + 1}</td>
+          <td><strong>${d.nama || '-'}</strong></td>
+          <td>
+            ${cleanWa ? `
+              <a href="https://wa.me/${cleanWa}" target="_blank" style="color: #10b981; font-weight: 600;">
+                <i class="fa-brands fa-whatsapp"></i> ${rawWa}
+              </a>
+            ` : (rawWa || '-')}
+          </td>
+          <td>${d.alamat || '-'}</td>
+          <td style="font-weight: 800; color: #0d7a57;">${formatRp(d.total_donasi)}</td>
+          <td><span class="badge badge-primary">${d.frekuensi || 1}x Donasi</span></td>
+        </tr>
+      `;
+    }).join('');
   }
 
   renderPengeluaran() {
@@ -477,13 +485,14 @@ class AdminPortal {
   sendKwitansiWa(donasiId) {
     if (!this.adminData || !this.adminData.donasi) return;
     const d = this.adminData.donasi.find(x => x.id === donasiId);
-    if (!d || !d.no_wa || d.no_wa === '-') {
+    const rawWa = String(d?.no_wa || '').trim();
+    if (!d || !rawWa || rawWa === '-') {
       window.app.showToast('Nomor WhatsApp donatur tidak tersedia', 'warning');
       return;
     }
 
     const formatRp = (num) => "Rp " + Number(num || 0).toLocaleString('id-ID');
-    let phone = d.no_wa.replace(/[^0-9]/g, '');
+    let phone = rawWa.replace(/[^0-9]/g, '');
     if (phone.startsWith('0')) phone = '62' + phone.substring(1);
 
     const pesan = encodeURIComponent(
@@ -539,7 +548,7 @@ class AdminPortal {
       filename = `donasi-ambulan-${new Date().toISOString().substring(0,10)}.csv`;
       csvContent += "ID,Tanggal,Nama Donatur,No WA,Nominal,Metode,Program,Status\n";
       (this.adminData.donasi || []).forEach(d => {
-        csvContent += `"${d.id}","${d.tanggal}","${d.nama_donatur}","${d.no_wa}",${d.nominal},"${d.metode_bayar}","${d.program}","${d.status}"\n`;
+        csvContent += `"${d.id}","${d.tanggal}","${d.nama_donatur}","${String(d.no_wa || '-')}",${d.nominal},"${d.metode_bayar}","${d.program}","${d.status}"\n`;
       });
     } else if (type === 'pengeluaran') {
       filename = `pengeluaran-ambulan-${new Date().toISOString().substring(0,10)}.csv`;
