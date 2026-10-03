@@ -113,14 +113,93 @@ class PublicPortal {
 
   renderSettings(settings) {
     if (!settings) return;
-    const elBsi = document.getElementById('text-rek-bsi');
-    const elMuamalat = document.getElementById('text-rek-muamalat');
-    const elHotline = document.getElementById('text-hotline');
-    const elAlamat = document.getElementById('text-alamat-ponpes');
 
-    if (elBsi && settings.rekening_bsi) elBsi.innerText = settings.rekening_bsi;
-    if (elMuamalat && settings.rekening_muamalat) elMuamalat.innerText = settings.rekening_muamalat;
-    if (elHotline && settings.hotline_darurat) elHotline.innerText = settings.hotline_darurat;
+    // Helper: Parse bank name, norek, atas-nama from structured or legacy
+    const b1Nama = settings.bank1_nama || 'Bank Syariah Indonesia (BSI)';
+    const b1Norek = settings.bank1_norek || (settings.rekening_bsi ? (settings.rekening_bsi.match(/\d[\d\s-]{4,}\d/) || [settings.rekening_bsi])[0].replace(/[^\d]/g, '') : '7123456789');
+    let b1AtasNama = settings.bank1_atas_nama || (settings.rekening_bsi && settings.rekening_bsi.includes('a.n.') ? settings.rekening_bsi.split('a.n.')[1].trim() : 'YAYASAN IMAM SYAFII BREBES');
+    if (b1AtasNama && !b1AtasNama.toLowerCase().startsWith('a.n.')) {
+      b1AtasNama = 'a.n. ' + b1AtasNama;
+    }
+
+    const b2Nama = settings.bank2_nama || 'Bank Muamalat';
+    const b2Norek = settings.bank2_norek || (settings.rekening_muamalat ? (settings.rekening_muamalat.match(/\d[\d\s-]{4,}\d/) || [settings.rekening_muamalat])[0].replace(/[^\d]/g, '') : '5010099888');
+    let b2AtasNama = settings.bank2_atas_nama || (settings.rekening_muamalat && settings.rekening_muamalat.includes('a.n.') ? settings.rekening_muamalat.split('a.n.')[1].trim() : "Ponpes Imam Syafi'i Brebes");
+    if (b2AtasNama && !b2AtasNama.toLowerCase().startsWith('a.n.')) {
+      b2AtasNama = 'a.n. ' + b2AtasNama;
+    }
+
+    // Bank 1 UI elements
+    const elB1Nama = document.getElementById('text-bank1-nama');
+    const elB1An = document.getElementById('text-bank1-atas-nama');
+    const elB1Norek = document.getElementById('text-bank1-norek');
+    const btnCopyB1 = document.getElementById('btn-copy-bank1');
+
+    if (elB1Nama) elB1Nama.innerText = b1Nama;
+    if (elB1An) elB1An.innerText = b1AtasNama;
+    if (elB1Norek) elB1Norek.innerText = b1Norek;
+    if (btnCopyB1) btnCopyB1.setAttribute('data-copy', b1Norek);
+
+    // Bank 2 UI elements
+    const elB2Nama = document.getElementById('text-bank2-nama');
+    const elB2An = document.getElementById('text-bank2-atas-nama');
+    const elB2Norek = document.getElementById('text-bank2-norek');
+    const btnCopyB2 = document.getElementById('btn-copy-bank2');
+
+    if (elB2Nama) elB2Nama.innerText = b2Nama;
+    if (elB2An) elB2An.innerText = b2AtasNama;
+    if (elB2Norek) elB2Norek.innerText = b2Norek;
+    if (btnCopyB2) btnCopyB2.setAttribute('data-copy', b2Norek);
+
+    // Legacy fallback IDs
+    const elBsi = document.getElementById('text-rek-bsi');
+    if (elBsi && elBsi !== elB1Norek) elBsi.innerText = b1Norek;
+    const elMuamalat = document.getElementById('text-rek-muamalat');
+    if (elMuamalat && elMuamalat !== elB2Norek) elMuamalat.innerText = b2Norek;
+
+    // Hotline & WhatsApp
+    const hotline = settings.hotline_darurat || '0812-9154-2134 (Ustadz Tegar)';
+    const cleanDigits = hotline.replace(/[^\d]/g, '');
+    let wa = (settings.wa_konfirmasi || '').replace(/[^\d]/g, '');
+    if (!wa) {
+      wa = cleanDigits.startsWith('0') ? '62' + cleanDigits.slice(1) : cleanDigits || '6281291542134';
+    } else if (wa.startsWith('0')) {
+      wa = '62' + wa.slice(1);
+    }
+
+    // Ticker Header
+    const tickerLink = document.getElementById('ticker-hotline-link');
+    const tickerText = document.getElementById('ticker-hotline-text');
+    if (tickerLink) tickerLink.href = `tel:${cleanDigits || '081291542134'}`;
+    if (tickerText) tickerText.innerText = hotline;
+
+    // Kontak view
+    const elHotline = document.getElementById('text-hotline');
+    if (elHotline) elHotline.innerText = hotline;
+
+    const btnHotlineCall = document.getElementById('btn-hotline-call');
+    if (btnHotlineCall) btnHotlineCall.href = `tel:${cleanDigits || '081291542134'}`;
+
+    const btnHotlineWa = document.getElementById('btn-hotline-wa');
+    if (btnHotlineWa) {
+      btnHotlineWa.href = `https://wa.me/${wa}?text=${encodeURIComponent("Assalamu'alaikum, saya butuh informasi/layanan ambulan darurat Ponpes Imam Syafi'i.")}`;
+    }
+
+    // Driver contact
+    const elDriver = document.getElementById('text-kontak-driver');
+    if (elDriver && settings.kontak_driver) elDriver.innerText = settings.kontak_driver;
+
+    // Modal Panggil Ambulan
+    const modalCall = document.getElementById('modal-ambulan-call');
+    if (modalCall) modalCall.href = `tel:${cleanDigits || '081291542134'}`;
+
+    const modalWa = document.getElementById('modal-ambulan-wa');
+    if (modalWa) {
+      modalWa.href = `https://wa.me/${wa}?text=${encodeURIComponent("Assalamu'alaikum, kami membutuhkan bantuan armada ambulan medis segera!")}`;
+    }
+
+    // Alamat Posko
+    const elAlamat = document.getElementById('text-alamat-ponpes');
     if (elAlamat && settings.alamat_ponpes) elAlamat.innerText = settings.alamat_ponpes;
   }
 

@@ -24,6 +24,9 @@ class AmbulanApp {
 
     // Initialize portals
     await window.publicPortal.init();
+    if (window.adminPortal) {
+      window.adminPortal.populateSettingsForm();
+    }
     if (window.adminPortal.isLoggedIn()) {
       await window.adminPortal.init();
     }
@@ -138,6 +141,11 @@ class AmbulanApp {
 
     // Update active state di menu
     this.updateActiveNavClasses(viewName);
+
+    // Jika masuk ke pengaturan admin, otomatis isi formulir dengan konfigurasi aktif
+    if (viewName === 'admin-pengaturan' && window.adminPortal) {
+      window.adminPortal.populateSettingsForm();
+    }
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });

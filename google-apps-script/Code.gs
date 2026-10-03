@@ -41,10 +41,17 @@ function initDatabase() {
       defaults: [
         ["target_donasi", "250000000", new Date().toISOString()],
         ["nama_program", "Pengadaan & Operasional Ambulan Medis Ponpes Imam Syafi'i Brebes", new Date().toISOString()],
-        ["rekening_bsi", "7123456789 - BSI a.n. YAYASAN IMAM SYAFII BREBES", new Date().toISOString()],
-        ["rekening_muamalat", "5010099888 - Bank Muamalat a.n. Ponpes Imam Syafi'i", new Date().toISOString()],
+        ["bank1_nama", "Bank Syariah Indonesia (BSI)", new Date().toISOString()],
+        ["bank1_norek", "7123456789", new Date().toISOString()],
+        ["bank1_atas_nama", "YAYASAN IMAM SYAFII BREBES", new Date().toISOString()],
+        ["bank2_nama", "Bank Muamalat", new Date().toISOString()],
+        ["bank2_norek", "5010099888", new Date().toISOString()],
+        ["bank2_atas_nama", "Ponpes Imam Syafi'i Brebes", new Date().toISOString()],
+        ["rekening_bsi", "7123456789 a.n. YAYASAN IMAM SYAFII BREBES", new Date().toISOString()],
+        ["rekening_muamalat", "5010099888 a.n. Ponpes Imam Syafi'i Brebes", new Date().toISOString()],
         ["hotline_darurat", "0812-9154-2134 (Ustadz Tegar)", new Date().toISOString()],
         ["wa_konfirmasi", "6281291542134", new Date().toISOString()],
+        ["kontak_driver", "0813-4567-8901 (Pak Slamet)", new Date().toISOString()],
         ["alamat_ponpes", "Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218", new Date().toISOString()]
       ]
     },
@@ -52,9 +59,7 @@ function initDatabase() {
       name: "users",
       headers: ["id", "username", "password", "nama", "role", "no_hp", "status", "created_at"],
       defaults: [
-        ["USR-001", "admin", "admin123", "Super Admin Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()],
-        ["USR-002", "verifikator", "maisya2026", "Ustadz Ridwan (Keuangan)", "verifikator", "081298765432", "aktif", new Date().toISOString()],
-        ["USR-003", "driver1", "driver123", "Pak Slamet (Driver Ambulan)", "driver", "081345678901", "aktif", new Date().toISOString()]
+        ["USR-001", "adminambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()]
       ]
     },
     {
@@ -152,6 +157,19 @@ function doGet(e) {
         break;
       case "clearDemoData":
         responseData = clearDemoData();
+        break;
+      case "updateSettings":
+        let settingsPayload = {};
+        if (e && e.parameter) {
+          if (e.parameter.payload) {
+            try { settingsPayload = JSON.parse(e.parameter.payload); } catch(err) { settingsPayload = {}; }
+          } else if (e.parameter.settings) {
+            try { settingsPayload = JSON.parse(e.parameter.settings); } catch(err) { settingsPayload = {}; }
+          } else {
+            settingsPayload = e.parameter;
+          }
+        }
+        responseData = updateSettings({ settings: settingsPayload });
         break;
       case "getPublicData":
         responseData = getPublicData();
@@ -519,6 +537,16 @@ function getAdminData() {
 
   const saldoKas = totalMasukVerified - totalPengeluaran;
 
+  const settingsObj = {};
+  if (settingsSheet) {
+    const sRows = settingsSheet.getDataRange().getValues();
+    for (let i = 1; i < sRows.length; i++) {
+      if (sRows[i][0]) {
+        settingsObj[String(sRows[i][0]).trim()] = sRows[i][1];
+      }
+    }
+  }
+
   return {
     success: true,
     data: {
@@ -538,7 +566,8 @@ function getAdminData() {
       donatur: donaturList,
       users: userList,
       auditLog: auditList,
-      layananAmbulan: ambulanList
+      layananAmbulan: ambulanList,
+      settings: settingsObj
     }
   };
 }
@@ -648,29 +677,63 @@ function manageUser(data) {
 
 function updateSettings(data) {
   const ss = getSS();
-  const sheet = ss.getSheetByName("settings");
-  if (!sheet) initDatabase();
+  let sheet = ss.getSheetByName("settings");
+  if (!sheet) {
+    initDatabase();
+    sheet = ss.getSheetByName("settings");
+  }
 
   const rows = sheet.getDataRange().getValues();
-  const keys = Object.keys(data.settings || {});
+  const settingsObj = data.settings || data || {};
+  const keys = Object.keys(settingsObj);
 
   keys.forEach(k => {
+    if (k === 'action' || k === 'token' || k === 'payload') return;
     let found = false;
     for (let i = 1; i < rows.length; i++) {
-      if (rows[i][0] === k) {
-        sheet.getRange(i + 1, 2).setValue(data.settings[k]);
+      if (String(rows[i][0]).trim() === k) {
+        sheet.getRange(i + 1, 2).setValue(String(settingsObj[k]));
         sheet.getRange(i + 1, 3).setValue(new Date().toISOString());
         found = true;
         break;
       }
     }
     if (!found) {
-      sheet.appendRow([k, data.settings[k], new Date().toISOString()]);
+      sheet.appendRow([k, String(settingsObj[k]), new Date().toISOString()]);
     }
   });
 
-  logAudit("ADMIN", "UPDATE_SETTINGS", "Pengaturan sistem ambulan diperbarui");
-  return { success: true, message: "Pengaturan berhasil disimpan" };
+  logAudit("ADMIN", "UPDATE_SETTINGS", "Pengaturan sistem & rekening diperbarui");
+  return { success: true, message: "Pengaturan berhasil disimpan ke Google Spreadsheet!" };
+}
+
+function clearDemoData() {
+  const ss = getSS();
+  const sheetsToClear = ["donatur", "donasi_masuk", "pengeluaran", "layanan_ambulan"];
+
+  sheetsToClear.forEach(function(name) {
+    const sheet = ss.getSheetByName(name);
+    if (sheet && sheet.getLastRow() > 1) {
+      sheet.deleteRows(2, sheet.getLastRow() - 1);
+    }
+  });
+
+  // Pastikan akun user direset HANYA menyisakan adminambulanmaisya
+  let userSheet = ss.getSheetByName("users");
+  if (userSheet) {
+    if (userSheet.getLastRow() > 1) {
+      userSheet.deleteRows(2, userSheet.getLastRow() - 1);
+    }
+    userSheet.appendRow([
+      "USR-001", "adminambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()
+    ]);
+  }
+
+  logAudit("SUPERADMIN", "CLEAR_DEMO_DATA", "Seluruh data transaksi demo dibersihkan. Akun admin: adminambulanmaisya disiapkan.");
+  return {
+    success: true,
+    message: "Seluruh data transaksi demo berhasil dibersihkan! Akun admin 'adminambulanmaisya' siap digunakan."
+  };
 }
 
 // -------------------------------------------------------------

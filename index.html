@@ -9,9 +9,9 @@
   <meta name="description" content="Aplikasi resmi pengelolaan dan transparansi donasi serta layanan armada ambulan medis gratis santri dan kaum dhuafa Pondok Pesantren Imam Syafi'i Brebes.">
   <meta name="theme-color" content="#0d7a57">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="assets/favicon.png?v=3">
-  <link rel="shortcut icon" href="assets/favicon.ico?v=3">
-  <link rel="apple-touch-icon" href="assets/icon-192.png?v=3">
+  <link rel="icon" type="image/png" href="assets/favicon.png?v=4">
+  <link rel="shortcut icon" href="assets/favicon.ico?v=4">
+  <link rel="apple-touch-icon" href="assets/icon-192.png?v=4">
 
   <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +35,7 @@
       <div class="header-inner">
         <!-- Logo & Brand -->
         <div class="brand-wrapper" onclick="window.app.navigateTo('beranda')">
-          <img src="assets/logo.png?v=3" alt="Logo Ambulan Maisya Ponpes Imam Syafi'i" class="brand-logo">
+          <img src="assets/logo.png?v=4" alt="Logo Ambulan Maisya Ponpes Imam Syafi'i" class="brand-logo">
           <div class="brand-info">
             <span class="brand-title">
               AMBULAN MAISYA <span class="brand-badge"><i class="fa-solid fa-truck-medical"></i></span>
@@ -80,8 +80,8 @@
       </div>
       <div class="ticker-content">
         <span>Hotline Ambulan Ponpes Imam Syafi'i Brebes:</span>
-        <a href="tel:081291542134" class="ticker-hotline" title="Hubungi Ustadz Tegar">
-          <i class="fa-brands fa-whatsapp"></i> 0812-9154-2134 (Ustadz Tegar)
+        <a href="tel:081291542134" class="ticker-hotline" id="ticker-hotline-link" title="Hubungi Petugas Ambulan Siaga">
+          <i class="fa-brands fa-whatsapp"></i> <span id="ticker-hotline-text">0812-9154-2134 (Ustadz Tegar)</span>
         </a>
         <span class="ticker-free-tag"><i class="fa-solid fa-circle-check"></i> 100% Gratis Santri &amp; Dhuafa</span>
       </div>
@@ -466,26 +466,26 @@
             <!-- Rekening Bank Resmi -->
             <h4 style="margin-bottom: 1rem; color: #064e3b;"><i class="fa-solid fa-building-columns"></i> Transfer Rekening Bank Resmi:</h4>
 
-            <!-- Bank BSI -->
+            <!-- Bank 1 (Utama) -->
             <div class="bank-card">
               <div class="bank-info">
-                <h5>Bank Syariah Indonesia (BSI)</h5>
-                <p>a.n. YAYASAN IMAM SYAFII BREBES</p>
-                <div class="bank-acc-number" id="text-rek-bsi">7123456789</div>
+                <h5 id="text-bank1-nama">Bank Syariah Indonesia (BSI)</h5>
+                <p id="text-bank1-atas-nama">a.n. YAYASAN IMAM SYAFII BREBES</p>
+                <div class="bank-acc-number" id="text-bank1-norek">7123456789</div>
               </div>
-              <button class="btn-copy" data-copy="7123456789">
+              <button class="btn-copy" id="btn-copy-bank1" data-copy="7123456789" title="Salin nomor rekening">
                 <i class="fa-regular fa-copy"></i> Salin Rekening
               </button>
             </div>
 
-            <!-- Bank Muamalat -->
+            <!-- Bank 2 (Sekunder) -->
             <div class="bank-card">
               <div class="bank-info">
-                <h5>Bank Muamalat</h5>
-                <p>a.n. Ponpes Imam Syafi'i Brebes</p>
-                <div class="bank-acc-number" id="text-rek-muamalat">5010099888</div>
+                <h5 id="text-bank2-nama">Bank Muamalat</h5>
+                <p id="text-bank2-atas-nama">a.n. Ponpes Imam Syafi'i Brebes</p>
+                <div class="bank-acc-number" id="text-bank2-norek">5010099888</div>
               </div>
-              <button class="btn-copy" data-copy="5010099888">
+              <button class="btn-copy" id="btn-copy-bank2" data-copy="5010099888" title="Salin nomor rekening">
                 <i class="fa-regular fa-copy"></i> Salin Rekening
               </button>
             </div>
@@ -727,13 +727,13 @@
             <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid #ef4444;">
               <h3 style="color: #b91c1c; margin-bottom: 0.5rem;"><i class="fa-solid fa-phone-volume"></i> Hotline Darurat Ambulan</h3>
               <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 0.5rem;">Siaga panggilan 24 jam untuk rujukan medis darurat santri & dhuafa.</p>
-              <div style="font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-bottom: 0.25rem;" id="text-hotline">0812-9154-2134</div>
-              <div style="font-size: 0.92rem; font-weight: 700; color: #0d7a57; margin-bottom: 1rem;"><i class="fa-solid fa-user-shield"></i> Koordinator: Ustadz Tegar</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-bottom: 0.25rem;" id="text-hotline">0812-9154-2134 (Ustadz Tegar)</div>
+              <div style="font-size: 0.92rem; font-weight: 700; color: #0d7a57; margin-bottom: 0.5rem;" id="kontak-driver-wrapper"><i class="fa-solid fa-user-shield"></i> Kontak Driver: <span id="text-kontak-driver">0857-1234-5678 (Driver Pak Slamet)</span></div>
               <div style="display: flex; gap: 0.75rem;">
-                <a href="tel:081291542134" class="btn btn-danger" style="flex: 1;">
+                <a href="tel:081291542134" class="btn btn-danger" id="btn-hotline-call" style="flex: 1;">
                   <i class="fa-solid fa-phone"></i> Telepon Sekarang
                 </a>
-                <a href="https://wa.me/6281291542134?text=Assalamu'alaikum%20Ustadz%20Tegar,%20saya%20butuh%20ambulan%20darurat%20Ponpes%20Imam%20Syafi'i" target="_blank" class="btn btn-primary" style="flex: 1;">
+                <a href="https://wa.me/6281291542134?text=Assalamu'alaikum%20Ustadz%20Tegar,%20saya%20butuh%20ambulan%20darurat%20Ponpes%20Imam%20Syafi'i" target="_blank" class="btn btn-primary" id="btn-hotline-wa" style="flex: 1;">
                   <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp
                 </a>
               </div>
@@ -821,6 +821,9 @@
         <div>
           <div style="font-weight: 800; font-size: 0.95rem; color: #ffffff;">ADMIN AMBULAN</div>
           <div style="font-size: 0.75rem; color: #10b981;" id="admin-profile-name">Ustadz Admin</div>
+          <div style="margin-top: 0.25rem; display: flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; color: #a7f3d0;" id="admin-sidebar-status">
+            <span class="pulse-green"></span> Apps Script Online
+          </div>
         </div>
       </div>
 
@@ -1176,52 +1179,140 @@
 
         <div class="card">
           <form id="form-admin-settings">
-            <h4 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-cloud"></i> Integrasi Google Spreadsheet & Apps Script</h4>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
+              <div>
+                <h4 style="color: #064e3b; margin: 0;"><i class="fa-solid fa-cloud"></i> Integrasi Google Spreadsheet & Apps Script</h4>
+                <p style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;">Sinkronisasi data real-time langsung ke Google Spreadsheet via deployment Apps Script resmi.</p>
+              </div>
+              <div id="connection-quick-badge" style="font-size: 0.82rem; font-weight: 700; padding: 0.4rem 0.85rem; border-radius: 20px; background: #ecfdf5; color: #065f46; display: inline-flex; align-items: center; gap: 0.45rem; border: 1px solid #a7f3d0;">
+                <span class="pulse-green"></span> Apps Script Online
+              </div>
+            </div>
             
             <div class="form-group">
-              <label class="form-label">URL Web App Google Apps Script (/exec):</label>
-              <input type="url" id="setting-apps-script-url" class="form-input" placeholder="https://script.google.com/macros/s/AKfycby.../exec">
+              <label class="form-label" style="font-weight: 700;">URL Web App Google Apps Script (/exec):</label>
+              <input type="url" id="setting-apps-script-url" class="form-input" value="https://script.google.com/macros/s/AKfycbzWpWylCScaz13HUfjbdVyMyfYI2ePlrucY0jgfg4DZgJtLc60NXwhycAnOSFE_2SGP/exec" placeholder="https://script.google.com/macros/s/.../exec">
               <div class="form-helper">
-                Dapatkan dari menu <strong>Deploy -> New Deployment -> Web app</strong> di Google Apps Script editor.
+                Deployment Apps Script resmi Ponpes Imam Syafi'i Brebes.
               </div>
             </div>
 
-            <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem;">
-              <input type="checkbox" id="setting-online-mode-toggle" style="width: 20px; height: 20px; accent-color: #0d7a57;">
-              <label for="setting-online-mode-toggle" style="font-size: 0.9rem; font-weight: 700; color: #1e293b; cursor: pointer;">
-                Aktifkan Mode Online (Sinkronisasi Langsung ke Google Spreadsheet)
-              </label>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+              <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0;">
+                <input type="checkbox" id="setting-online-mode-toggle" checked style="width: 20px; height: 20px; accent-color: #0d7a57; cursor: pointer;">
+                <label for="setting-online-mode-toggle" style="font-size: 0.9rem; font-weight: 700; color: #1e293b; cursor: pointer;">
+                  Aktifkan Mode Online (Sinkronisasi Langsung ke Google Spreadsheet)
+                </label>
+              </div>
+
+              <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0;">
+                <input type="checkbox" id="setting-filter-demo-toggle" checked style="width: 20px; height: 20px; accent-color: #0d7a57; cursor: pointer;">
+                <label for="setting-filter-demo-toggle" style="font-size: 0.9rem; font-weight: 700; color: #1e293b; cursor: pointer;">
+                  Mode Produksi Bersih: Abaikan / Sembunyikan Data Dummy Demo (Hanya Tampilkan Transaksi Riil)
+                </label>
+              </div>
+            </div>
+
+            <!-- Tombol Pengaturan Tes Koneksi -->
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; padding: 0.85rem; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+              <button type="button" class="btn btn-primary" id="btn-test-connection" style="padding: 0.65rem 1.25rem; font-size: 0.88rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; background: #0d7a57; border: none;">
+                <i class="fa-solid fa-plug-circle-check"></i> Tes Koneksi Apps Script
+              </button>
+              <button type="button" class="btn btn-outline" id="btn-reset-apps-script-url" style="padding: 0.65rem 1rem; font-size: 0.85rem;" title="Kembalikan URL deployment resmi">
+                <i class="fa-solid fa-rotate-left"></i> Reset ke URL Resmi
+              </button>
+              <span style="font-size: 0.8rem; color: #64748b; margin-left: auto;">
+                <i class="fa-solid fa-shield-halved text-success"></i> Terenkripsi HTTPS Google Cloud
+              </span>
+            </div>
+
+            <!-- Panel Hasil Diagnostik Tes Koneksi -->
+            <div id="connection-test-result" style="display: none; margin-bottom: 1.5rem; border-radius: 14px; padding: 1.25rem; border: 1px solid #d1fae5; background: #f0fdf4; transition: all 0.3s ease;">
+              <!-- Hasil pengujian diagnostik dinamis via admin.js -->
             </div>
 
             <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
 
-            <h4 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-bullseye"></i> Target & Info Rekening Donasi</h4>
+            <h4 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-bullseye"></i> Target Kebutuhan Donasi</h4>
 
             <div class="form-group">
               <label class="form-label">Target Donasi (Rp):</label>
-              <input type="number" id="setting-target-donasi" class="form-input" value="250000000">
+              <input type="number" id="setting-target-donasi" class="form-input" value="250000000" placeholder="250000000">
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-              <div class="form-group">
-                <label class="form-label">Info Rekening BSI:</label>
-                <input type="text" id="setting-rek-bsi" class="form-input" value="7123456789 a.n. YAYASAN IMAM SYAFII BREBES">
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
+
+            <h4 style="color: #064e3b; margin-bottom: 0.5rem;"><i class="fa-solid fa-building-columns"></i> Pengaturan Rekening Bank Donasi Resmi</h4>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Perubahan rekening di sini langsung tersimpan ke Google Spreadsheet dan otomatis tampil di halaman publik &amp; cetak kwitansi.</p>
+
+            <!-- Card Rekening 1 (Utama) -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem;">
+              <div style="font-weight: 700; color: #065f46; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-wallet text-primary"></i> Rekening Bank 1 (Utama)
               </div>
-              <div class="form-group">
-                <label class="form-label">Info Rekening Muamalat:</label>
-                <input type="text" id="setting-rek-muamalat" class="form-input" value="5010099888 a.n. Ponpes Imam Syafi'i">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.82rem;">Nama Bank:</label>
+                  <input type="text" id="setting-bank1-nama" class="form-input" value="Bank Syariah Indonesia (BSI)" placeholder="Misal: Bank Syariah Indonesia (BSI)">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.82rem;">Nomor Rekening (Hanya Angka):</label>
+                  <input type="text" id="setting-bank1-norek" class="form-input" value="7123456789" placeholder="Misal: 7123456789">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.82rem;">Atas Nama (a.n.):</label>
+                  <input type="text" id="setting-bank1-atas-nama" class="form-input" value="YAYASAN IMAM SYAFII BREBES" placeholder="Misal: YAYASAN IMAM SYAFII BREBES">
+                </div>
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Card Rekening 2 (Sekunder) -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem;">
+              <div style="font-weight: 700; color: #065f46; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-wallet text-primary"></i> Rekening Bank 2 (Sekunder)
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.82rem;">Nama Bank:</label>
+                  <input type="text" id="setting-bank2-nama" class="form-input" value="Bank Muamalat" placeholder="Misal: Bank Muamalat">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.82rem;">Nomor Rekening (Hanya Angka):</label>
+                  <input type="text" id="setting-bank2-norek" class="form-input" value="5010099888" placeholder="Misal: 5010099888">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.82rem;">Atas Nama (a.n.):</label>
+                  <input type="text" id="setting-bank2-atas-nama" class="form-input" value="Ponpes Imam Syafi'i Brebes" placeholder="Misal: Ponpes Imam Syafi'i Brebes">
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden input for backwards-compatibility -->
+            <input type="hidden" id="setting-rek-bsi" value="">
+            <input type="hidden" id="setting-rek-muamalat" value="">
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
+
+            <h4 style="color: #064e3b; margin-bottom: 0.5rem;"><i class="fa-solid fa-phone-volume"></i> Pengaturan Kontak Hotline &amp; Tim Siaga</h4>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Antisipasi pergantian kontak koordinator siaga, nomor darurat, atau driver armada ambulan.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
               <div class="form-group">
-                <label class="form-label">Hotline Darurat Ambulan:</label>
-                <input type="text" id="setting-hotline" class="form-input" value="0812-9154-2134 (Ustadz Tegar)">
+                <label class="form-label">Hotline Darurat Ambulan (Nama/Label Tampilan):</label>
+                <input type="text" id="setting-hotline" class="form-input" value="0812-9154-2134 (Ustadz Tegar)" placeholder="0812-9154-2134 (Ustadz Tegar)">
+                <small style="color: #64748b; font-size: 0.78rem;">Ditampilkan di running banner darurat dan informasi kontak.</small>
               </div>
               <div class="form-group">
-                <label class="form-label">WhatsApp Konfirmasi / Hotline:</label>
-                <input type="text" id="setting-wa-konfirmasi" class="form-input" value="6281291542134">
+                <label class="form-label">Nomor WhatsApp Siaga (Awalan 62 tanpa + atau spasi):</label>
+                <input type="text" id="setting-wa-konfirmasi" class="form-input" value="6281291542134" placeholder="6281291542134">
+                <small style="color: #64748b; font-size: 0.78rem;">Nomor tujuan untuk tombol WhatsApp di halaman publik dan pemohon ambulan.</small>
               </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Kontak Petugas Driver / Siaga Armada Tambahan:</label>
+              <input type="text" id="setting-kontak-driver" class="form-input" value="0857-1234-5678 (Driver Pak Slamet)" placeholder="0857-1234-5678 (Driver Pak Slamet)">
+              <small style="color: #64748b; font-size: 0.78rem;">Kontak cadangan jika panggilan darurat membutuhkan koordinasi langsung dengan supir armada.</small>
             </div>
 
             <div class="form-group">
@@ -1564,10 +1655,10 @@
         </div>
 
         <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
-          <a href="tel:081291542134" class="btn btn-danger" style="flex: 1; padding: 0.85rem;">
+          <a href="tel:081291542134" class="btn btn-danger" id="modal-ambulan-call" style="flex: 1; padding: 0.85rem;">
             <i class="fa-solid fa-phone"></i> Hubungi Ustadz Tegar
           </a>
-          <a href="https://wa.me/6281291542134?text=Assalamu'alaikum%20Ustadz%20Tegar,%20kami%20membutuhkan%20bantuan%20ambulan%20segera" target="_blank" class="btn btn-primary" style="flex: 1; padding: 0.85rem;">
+          <a href="https://wa.me/6281291542134?text=Assalamu'alaikum%20Ustadz%20Tegar,%20kami%20membutuhkan%20bantuan%20ambulan%20segera" target="_blank" class="btn btn-primary" id="modal-ambulan-wa" style="flex: 1; padding: 0.85rem;">
             <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp
           </a>
         </div>

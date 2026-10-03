@@ -5,6 +5,11 @@
 - **Script ID**: `12z6YFl03wUrCn7HE8q9Qs-dAgAK6qQRxWV2WWmQJ6ck_bSMWrL6mkEH-`
 - **Web App URL Aktif**: `https://script.google.com/macros/s/AKfycbzWpWylCScaz13HUfjbdVyMyfYI2ePlrucY0jgfg4DZgJtLc60NXwhycAnOSFE_2SGP/exec`
 
+### Akun Administrator Resmi:
+- **Username**: `adminambulanmaisya`
+- **Password**: `ambulan991588`
+- **Role**: `superadmin`
+
 ---
 
 ### Cara Membersihkan Data Demo di Google Spreadsheet:

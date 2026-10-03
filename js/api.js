@@ -4,40 +4,45 @@
  * =========================================================================
  * Mengelola komunikasi ke Google Apps Script Web App & Sinkronisasi Local Cache
  * Spreadsheet ID : 1q5f7EI5H1SBmb50U4yaFyi7eTDEUgVqpoU4j4yesd8o
- * Script ID      : 12z6YFl03wUrCn7HE8q9Qs-dAgAK6qQRxWV2WWmQJ6ck_bSMWrL6mkEH-
+ * Deployment URL : https://script.google.com/macros/s/AKfycbzWpWylCScaz13HUfjbdVyMyfYI2ePlrucY0jgfg4DZgJtLc60NXwhycAnOSFE_2SGP/exec
  * =========================================================================
  */
 
 const ApiConfig = {
-  // URL Deployment Web App Apps Script Resmi Ponpes Imam Syafi'i Brebes
   APPS_SCRIPT_URL_KEY: 'maisya_apps_script_url',
   LOCAL_DB_KEY: 'maisya_ambulan_db_v1',
   DEFAULT_APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzWpWylCScaz13HUfjbdVyMyfYI2ePlrucY0jgfg4DZgJtLc60NXwhycAnOSFE_2SGP/exec',
-  USE_ONLINE_MODE_KEY: 'maisya_use_online_mode'
+  USE_ONLINE_MODE_KEY: 'maisya_use_online_mode',
+  FILTER_DEMO_DATA_KEY: 'maisya_filter_demo_data'
 };
 
-// Database Bersih (Tanpa Data Demo) Ponpes Imam Syafi'i Brebes
+// Database Bersih (Murni Tanpa Data Dummy) Ponpes Imam Syafi'i Brebes
 const INITIAL_DATABASE = {
   settings: {
     target_donasi: 250000000,
     nama_program: "Pengadaan & Operasional Ambulan Medis Ponpes Imam Syafi'i Brebes",
+    bank1_nama: "Bank Syariah Indonesia (BSI)",
+    bank1_norek: "7123456789",
+    bank1_atas_nama: "YAYASAN IMAM SYAFII BREBES",
+    bank2_nama: "Bank Muamalat",
+    bank2_norek: "5010099888",
+    bank2_atas_nama: "Ponpes Imam Syafi'i Brebes",
     rekening_bsi: "7123456789 a.n. YAYASAN IMAM SYAFII BREBES",
     rekening_muamalat: "5010099888 a.n. Ponpes Imam Syafi'i Brebes",
     hotline_darurat: "0812-9154-2134 (Ustadz Tegar)",
     wa_konfirmasi: "6281291542134",
+    kontak_driver: "0813-4567-8901 (Pak Slamet)",
     alamat_ponpes: "Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218"
   },
   users: [
-    { id: "USR-001", username: "admin", password: "admin123", nama: "Super Admin Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" },
-    { id: "USR-002", username: "verifikator", password: "maisya2026", nama: "Ustadz Ridwan (Keuangan)", role: "verifikator", no_hp: "081298765432", status: "aktif" },
-    { id: "USR-003", username: "driver1", password: "driver123", nama: "Pak Slamet (Driver Ambulan)", role: "driver", no_hp: "081345678901", status: "aktif" }
+    { id: "USR-001", username: "adminambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" }
   ],
   donatur: [],
   donasi_masuk: [],
   pengeluaran: [],
   layanan_ambulan: [],
   audit_log: [
-    { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "system", action: "INITIALIZE", detail: "Sistem Ambulan Ponpes Imam Syafi'i aktif" }
+    { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "adminambulanmaisya", action: "INITIALIZE", detail: "Sistem Ambulan Ponpes Imam Syafi'i siap digunakan (mode bersih)" }
   ]
 };
 
@@ -47,16 +52,40 @@ class AmbulanApi {
   }
 
   initLocalDb() {
-    // Selalu pastikan URL Apps Script mengarah ke URL deployment produksi resmi
-    localStorage.setItem(ApiConfig.APPS_SCRIPT_URL_KEY, ApiConfig.DEFAULT_APPS_SCRIPT_URL);
-    localStorage.setItem(ApiConfig.USE_ONLINE_MODE_KEY, 'true');
+    // 1. Selalu pastikan URL Apps Script mengarah ke URL deployment resmi
+    const currentUrl = localStorage.getItem(ApiConfig.APPS_SCRIPT_URL_KEY);
+    if (!currentUrl || currentUrl.trim() === '' || currentUrl.includes('AKfycby...')) {
+      localStorage.setItem(ApiConfig.APPS_SCRIPT_URL_KEY, ApiConfig.DEFAULT_APPS_SCRIPT_URL);
+    }
 
-    const cleanedFlag = localStorage.getItem('maisya_clean_production_v3');
+    // 2. Default mode online aktif & mode filter demo aktif
+    if (localStorage.getItem(ApiConfig.USE_ONLINE_MODE_KEY) === null) {
+      localStorage.setItem(ApiConfig.USE_ONLINE_MODE_KEY, 'true');
+    }
+    if (localStorage.getItem(ApiConfig.FILTER_DEMO_DATA_KEY) === null) {
+      localStorage.setItem(ApiConfig.FILTER_DEMO_DATA_KEY, 'true');
+    }
+
+    // 3. Pembersihan cache lokal legacy versi sebelumnya (agar bersih 100% tanpa data dummy)
+    const cleanedFlag = localStorage.getItem('maisya_clean_production_v8');
     if (!cleanedFlag) {
       const existing = this.getDb();
-      existing.settings = INITIAL_DATABASE.settings;
+      existing.users = [
+        { id: "USR-001", username: "adminambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" }
+      ];
+      existing.donatur = [];
+      existing.donasi_masuk = [];
+      existing.pengeluaran = [];
+      existing.layanan_ambulan = [];
+      existing.settings = { ...INITIAL_DATABASE.settings, ...(existing.settings || {}) };
+      existing.audit_log = [
+        { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "adminambulanmaisya", action: "INITIALIZE", detail: "Sistem diinisialisasi dalam mode produksi bersih dengan akun adminambulanmaisya" }
+      ];
       localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(existing));
-      localStorage.setItem('maisya_clean_production_v3', 'true');
+      localStorage.setItem(ApiConfig.APPS_SCRIPT_URL_KEY, ApiConfig.DEFAULT_APPS_SCRIPT_URL);
+      localStorage.setItem(ApiConfig.USE_ONLINE_MODE_KEY, 'true');
+      localStorage.setItem(ApiConfig.FILTER_DEMO_DATA_KEY, 'true');
+      localStorage.setItem('maisya_clean_production_v8', 'true');
     } else if (!localStorage.getItem(ApiConfig.LOCAL_DB_KEY)) {
       localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(INITIAL_DATABASE));
     }
@@ -76,19 +105,122 @@ class AmbulanApi {
   }
 
   getAppsScriptUrl() {
-    return localStorage.getItem(ApiConfig.APPS_SCRIPT_URL_KEY) || ApiConfig.DEFAULT_APPS_SCRIPT_URL;
+    const saved = localStorage.getItem(ApiConfig.APPS_SCRIPT_URL_KEY);
+    return (saved && saved.trim().length > 10) ? saved.trim() : ApiConfig.DEFAULT_APPS_SCRIPT_URL;
   }
 
   setAppsScriptUrl(url) {
-    localStorage.setItem(ApiConfig.APPS_SCRIPT_URL_KEY, url.trim());
+    const clean = (url || '').trim();
+    localStorage.setItem(ApiConfig.APPS_SCRIPT_URL_KEY, clean || ApiConfig.DEFAULT_APPS_SCRIPT_URL);
   }
 
   isOnlineMode() {
-    return localStorage.getItem(ApiConfig.USE_ONLINE_MODE_KEY) === 'true';
+    const val = localStorage.getItem(ApiConfig.USE_ONLINE_MODE_KEY);
+    return val === null ? true : val === 'true';
   }
 
   setOnlineMode(isOnline) {
     localStorage.setItem(ApiConfig.USE_ONLINE_MODE_KEY, isOnline ? 'true' : 'false');
+  }
+
+  isFilterDemoData() {
+    const val = localStorage.getItem(ApiConfig.FILTER_DEMO_DATA_KEY);
+    return val === null ? true : val === 'true';
+  }
+
+  setFilterDemoData(isFilter) {
+    localStorage.setItem(ApiConfig.FILTER_DEMO_DATA_KEY, isFilter ? 'true' : 'false');
+  }
+
+  /**
+   * Mendeteksi baris data dummy seed awal dari spreadsheet lama
+   */
+  isDemoRecord(item) {
+    if (!item) return false;
+    const id = String(item.id || '').trim();
+    // Pattern ID demo: DON-202603*, EXP-202603*, AMB-202603*, DTR-00*
+    if (/^(DON|EXP|AMB)-202603/i.test(id)) return true;
+    if (/^DTR-00[123]$/i.test(id)) return true;
+
+    // Pattern nama demo awal
+    const name = String(item.nama || item.nama_donatur || item.nama_pemohon || '').trim().toLowerCase();
+    if (name === 'h. ahmad syafii' && Number(item.nominal) === 3000000) return true;
+    if (name === 'keluarga santri maisya' && Number(item.nominal) === 2500000) return true;
+    if (name === 'ibu siti mariyam' && id.startsWith('AMB-')) return true;
+
+    return false;
+  }
+
+  // ------------------------------------------------------------------------
+  // TEST KONEKSI GOOGLE APPS SCRIPT
+  // ------------------------------------------------------------------------
+
+  async testConnection(customUrl = null) {
+    const targetUrl = (customUrl || this.getAppsScriptUrl()).trim();
+    const result = {
+      success: false,
+      url: targetUrl,
+      pingLatency: 0,
+      publicLatency: 0,
+      serverMessage: '',
+      serverTimestamp: '',
+      spreadsheetConnected: false,
+      targetDonasi: 0,
+      totalTerkumpul: 0,
+      totalPengeluaran: 0,
+      donasiCount: 0,
+      pengeluaranCount: 0,
+      namaProgram: '',
+      error: null
+    };
+
+    try {
+      // 1. Tes Ping Latensi
+      const pingStart = performance.now();
+      const pingRes = await fetch(`${targetUrl}?action=ping&_t=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store'
+      });
+      result.pingLatency = Math.round(performance.now() - pingStart);
+
+      if (!pingRes.ok) {
+        throw new Error(`Server Apps Script merespon kode HTTP ${pingRes.status} (${pingRes.statusText})`);
+      }
+
+      const pingJson = await pingRes.json();
+      result.serverMessage = pingJson.message || 'API Ambulan Ponpes Imam Syafi\'i Aktif';
+      result.serverTimestamp = pingJson.timestamp || new Date().toISOString();
+
+      // 2. Tes Akses Data Spreadsheet
+      const dataStart = performance.now();
+      const dataRes = await fetch(`${targetUrl}?action=getPublicData&_t=${Date.now()}`, {
+        method: 'GET',
+        cache: 'no-store'
+      });
+      result.publicLatency = Math.round(performance.now() - dataStart);
+
+      if (dataRes.ok) {
+        const dataJson = await dataRes.json();
+        if (dataJson && dataJson.success && dataJson.data) {
+          result.spreadsheetConnected = true;
+          const stats = dataJson.data.stats || {};
+          const settings = dataJson.data.settings || {};
+          result.targetDonasi = stats.targetDonasi || settings.target_donasi || 250000000;
+          result.totalTerkumpul = stats.totalTerkumpul || 0;
+          result.totalPengeluaran = stats.totalPengeluaran || 0;
+          result.donasiCount = (dataJson.data.transparansiDonasi || []).length;
+          result.pengeluaranCount = (dataJson.data.transparansiPengeluaran || []).length;
+          result.namaProgram = settings.nama_program || 'Pengadaan & Operasional Ambulan Ponpes Imam Syafi\'i';
+        }
+      }
+
+      result.success = true;
+      return result;
+    } catch (err) {
+      result.success = false;
+      result.error = err.message || err.toString();
+      return result;
+    }
   }
 
   // ------------------------------------------------------------------------
@@ -96,14 +228,57 @@ class AmbulanApi {
   // ------------------------------------------------------------------------
 
   async getPublicData() {
+    const filterDemo = this.isFilterDemoData();
+
     // Coba ambil dari Google Apps Script jika online mode aktif
     if (this.isOnlineMode()) {
       try {
-        const url = `${this.getAppsScriptUrl()}?action=getPublicData`;
-        const res = await fetch(url);
+        const url = `${this.getAppsScriptUrl()}?action=getPublicData&_t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
         const json = await res.json();
         if (json && json.success && json.data) {
-          return json.data;
+          const rawDonasi = json.data.transparansiDonasi || [];
+          const rawPengeluaran = json.data.transparansiPengeluaran || [];
+
+          // Terapkan filter demo jika mode tanpa dummy aktif
+          const verifiedDonations = filterDemo
+            ? rawDonasi.filter(d => !this.isDemoRecord(d))
+            : rawDonasi;
+
+          const listPengeluaran = filterDemo
+            ? rawPengeluaran.filter(p => !this.isDemoRecord(p))
+            : rawPengeluaran;
+
+          let totalTerkumpul = 0;
+          verifiedDonations.forEach(d => {
+            totalTerkumpul += (Number(d.nominal) || 0);
+          });
+
+          let totalPengeluaran = 0;
+          listPengeluaran.forEach(p => {
+            totalPengeluaran += (Number(p.nominal) || 0);
+          });
+
+          const totalDonatur = verifiedDonations.length;
+          const targetDonasi = Number(json.data.stats?.targetDonasi) || Number(json.data.settings?.target_donasi) || 250000000;
+          const sisaTarget = Math.max(0, targetDonasi - totalTerkumpul);
+          const saldoKas = totalTerkumpul - totalPengeluaran;
+          const persentase = Math.min(100, Math.round((totalTerkumpul / targetDonasi) * 100));
+
+          return {
+            stats: {
+              targetDonasi,
+              totalTerkumpul,
+              sisaTarget,
+              persentase,
+              totalDonatur,
+              totalPengeluaran,
+              saldoKas
+            },
+            settings: json.data.settings || this.getDb().settings,
+            transparansiDonasi: verifiedDonations.slice(0, 50),
+            transparansiPengeluaran: listPengeluaran.slice(0, 50)
+          };
         }
       } catch (err) {
         console.warn('Apps Script offline/unreachable, fallback to local storage:', err);
@@ -116,7 +291,10 @@ class AmbulanApi {
     let totalDonatur = 0;
     const verifiedDonations = [];
 
-    (db.donasi_masuk || []).forEach(d => {
+    const rawDonasi = db.donasi_masuk || [];
+    const filteredDonasi = filterDemo ? rawDonasi.filter(d => !this.isDemoRecord(d)) : rawDonasi;
+
+    filteredDonasi.forEach(d => {
       if (d.status === 'Verified') {
         const nom = Number(d.nominal) || 0;
         totalTerkumpul += nom;
@@ -134,7 +312,10 @@ class AmbulanApi {
 
     let totalPengeluaran = 0;
     const listPengeluaran = [];
-    (db.pengeluaran || []).forEach(p => {
+    const rawPengeluaran = db.pengeluaran || [];
+    const filteredPengeluaran = filterDemo ? rawPengeluaran.filter(p => !this.isDemoRecord(p)) : rawPengeluaran;
+
+    filteredPengeluaran.forEach(p => {
       const nom = Number(p.nominal) || 0;
       totalPengeluaran += nom;
       listPengeluaran.push({
@@ -148,7 +329,7 @@ class AmbulanApi {
       });
     });
 
-    const targetDonasi = Number(db.settings.target_donasi) || 250000000;
+    const targetDonasi = Number(db.settings?.target_donasi) || 250000000;
     const saldoKas = totalTerkumpul - totalPengeluaran;
     const persentase = Math.min(100, Math.round((totalTerkumpul / targetDonasi) * 100));
 
@@ -173,7 +354,7 @@ class AmbulanApi {
       try {
         const res = await fetch(this.getAppsScriptUrl(), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'submitDonasi', ...formData })
         });
         const json = await res.json();
@@ -205,7 +386,7 @@ class AmbulanApi {
       metode_bayar: formData.metode_bayar || "BSI Transfer",
       program: formData.program || "Pengadaan Armada",
       doa_pesan: formData.doa_pesan || "-",
-      bukti_transfer: formData.bukti_base64 || "assets/logo.svg",
+      bukti_transfer: formData.bukti_base64 || "assets/logo.png",
       status: "Pending",
       verified_by: "",
       verified_at: "",
@@ -256,7 +437,7 @@ class AmbulanApi {
       try {
         const res = await fetch(this.getAppsScriptUrl(), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'requestAmbulance', ...data })
         });
         const json = await res.json();
@@ -309,7 +490,7 @@ class AmbulanApi {
       try {
         const res = await fetch(this.getAppsScriptUrl(), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'loginAdmin', username, password })
         });
         const json = await res.json();
@@ -354,11 +535,13 @@ class AmbulanApi {
   }
 
   async getAdminData() {
+    const filterDemo = this.isFilterDemoData();
+
     if (this.isOnlineMode()) {
       try {
-        const token = sessionStorage.getItem('maisya_admin_token') || 'MAISYA-TOKEN';
-        const url = `${this.getAppsScriptUrl()}?action=getAdminData&token=${token}`;
-        const res = await fetch(url);
+        const token = sessionStorage.getItem('maisya_admin_token') || 'MAISYA-TOKEN-DEFAULT';
+        const url = `${this.getAppsScriptUrl()}?action=getAdminData&token=${token}&_t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
         const json = await res.json();
         if (json.success && json.data) {
           // Normalisasi tipe data string secara defensif
@@ -380,21 +563,89 @@ class AmbulanApi {
               if (u.id !== undefined && u.id !== null) u.id = String(u.id);
             });
           }
-          return json.data;
+
+          // Terapkan filter demo jika mode tanpa dummy aktif
+          const rawDonasi = json.data.donasi || [];
+          const rawPengeluaran = json.data.pengeluaran || [];
+          const rawDonatur = json.data.donatur || [];
+          const rawLayanan = json.data.layananAmbulan || [];
+
+          const cleanDonasi = filterDemo ? rawDonasi.filter(d => !this.isDemoRecord(d)) : rawDonasi;
+          const cleanPengeluaran = filterDemo ? rawPengeluaran.filter(p => !this.isDemoRecord(p)) : rawPengeluaran;
+          const cleanDonatur = filterDemo ? rawDonatur.filter(d => !this.isDemoRecord(d)) : rawDonatur;
+          const cleanLayanan = filterDemo ? rawLayanan.filter(a => !this.isDemoRecord(a)) : rawLayanan;
+
+          let totalMasukVerified = 0;
+          let totalPending = 0;
+          let countPending = 0;
+          let countVerified = 0;
+          let countRejected = 0;
+
+          cleanDonasi.forEach(d => {
+            const nom = Number(d.nominal) || 0;
+            if (d.status === 'Verified') {
+              totalMasukVerified += nom;
+              countVerified++;
+            } else if (d.status === 'Pending') {
+              totalPending += nom;
+              countPending++;
+            } else if (d.status === 'Rejected') {
+              countRejected++;
+            }
+          });
+
+          let totalPengeluaran = 0;
+          cleanPengeluaran.forEach(p => {
+            totalPengeluaran += (Number(p.nominal) || 0);
+          });
+
+          const saldoKas = totalMasukVerified - totalPengeluaran;
+
+          return {
+            kpi: {
+              saldoKas,
+              totalMasukVerified,
+              totalPending,
+              countPending,
+              countVerified,
+              countRejected,
+              totalPengeluaran,
+              totalDonatur: cleanDonatur.length,
+              totalLayanan: cleanLayanan.length
+            },
+            donasi: cleanDonasi,
+            pengeluaran: cleanPengeluaran,
+            donatur: cleanDonatur,
+            users: json.data.users || [],
+            auditLog: json.data.auditLog || [],
+            layananAmbulan: cleanLayanan,
+            settings: json.data.settings || this.getDb().settings
+          };
         }
       } catch (e) {
         console.warn('Apps script getAdminData failed:', e);
       }
     }
 
+    // Fallback Local Storage
     const db = this.getDb();
+    const rawDonasi = db.donasi_masuk || [];
+    const rawPengeluaran = db.pengeluaran || [];
+    const rawDonatur = db.donatur || [];
+    const rawLayanan = db.layanan_ambulan || [];
+
+    const cleanDonasi = filterDemo ? rawDonasi.filter(d => !this.isDemoRecord(d)) : rawDonasi;
+    const cleanPengeluaran = filterDemo ? rawPengeluaran.filter(p => !this.isDemoRecord(p)) : rawPengeluaran;
+    const cleanDonatur = filterDemo ? rawDonatur.filter(d => !this.isDemoRecord(d)) : rawDonatur;
+    const cleanLayanan = filterDemo ? rawLayanan.filter(a => !this.isDemoRecord(a)) : rawLayanan;
+
     let totalMasukVerified = 0;
     let totalPending = 0;
     let countPending = 0;
     let countVerified = 0;
     let countRejected = 0;
 
-    (db.donasi_masuk || []).forEach(d => {
+    cleanDonasi.forEach(d => {
       const nom = Number(d.nominal) || 0;
       if (d.status === 'Verified') {
         totalMasukVerified += nom;
@@ -408,7 +659,7 @@ class AmbulanApi {
     });
 
     let totalPengeluaran = 0;
-    (db.pengeluaran || []).forEach(p => {
+    cleanPengeluaran.forEach(p => {
       totalPengeluaran += (Number(p.nominal) || 0);
     });
 
@@ -423,15 +674,15 @@ class AmbulanApi {
         countVerified,
         countRejected,
         totalPengeluaran,
-        totalDonatur: (db.donatur || []).length,
-        totalLayanan: (db.layanan_ambulan || []).length
+        totalDonatur: cleanDonatur.length,
+        totalLayanan: cleanLayanan.length
       },
-      donasi: db.donasi_masuk || [],
-      pengeluaran: db.pengeluaran || [],
-      donatur: db.donatur || [],
+      donasi: cleanDonasi,
+      pengeluaran: cleanPengeluaran,
+      donatur: cleanDonatur,
       users: (db.users || []).map(u => ({ ...u, password: '***' })),
       auditLog: db.audit_log || [],
-      layananAmbulan: db.layanan_ambulan || [],
+      layananAmbulan: cleanLayanan,
       settings: db.settings
     };
   }
@@ -441,7 +692,7 @@ class AmbulanApi {
       try {
         const res = await fetch(this.getAppsScriptUrl(), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'verifyDonasi', id, status, adminName, alasan })
         });
         const json = await res.json();
@@ -477,7 +728,7 @@ class AmbulanApi {
       try {
         const res = await fetch(this.getAppsScriptUrl(), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'addPengeluaran', ...expenseData, pic: adminName })
         });
         const json = await res.json();
@@ -493,7 +744,8 @@ class AmbulanApi {
       String(now.getMonth() + 1).padStart(2, '0') +
       String(now.getDate()).padStart(2, '0') + "-" +
       String(now.getHours()).padStart(2, '0') +
-      String(now.getMinutes()).padStart(2, '0');
+      String(now.getMinutes()).padStart(2, '0') +
+      String(now.getSeconds()).padStart(2, '0');
 
     const newExpense = {
       id: id,
@@ -502,7 +754,7 @@ class AmbulanApi {
       deskripsi: expenseData.deskripsi,
       nominal: Number(expenseData.nominal) || 0,
       pic: adminName || expenseData.pic || "Admin",
-      bukti_nota: expenseData.bukti_nota || "assets/logo.svg"
+      bukti_nota: expenseData.bukti_nota || "assets/logo.png"
     };
 
     db.pengeluaran.unshift(newExpense);
@@ -580,28 +832,76 @@ class AmbulanApi {
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
       user: adminActor,
       action: "UPDATE_SETTINGS",
-      detail: 'Pengaturan sistem ambulan diperbarui'
+      detail: 'Pengaturan sistem, rekening bank, & kontak darurat diperbarui'
     });
     this.saveDb(db);
-    return { success: true, message: 'Pengaturan berhasil diperbarui!' };
+
+    let gasSynced = false;
+    if (this.isOnlineMode()) {
+      try {
+        // Coba via POST
+        const resPost = await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'updateSettings', settings: newSettings })
+        });
+        const jsonPost = await resPost.json();
+        if (jsonPost && jsonPost.success) {
+          gasSynced = true;
+        }
+      } catch (errPost) {
+        console.warn('Apps Script updateSettings POST failed, mencoba via GET parameter:', errPost);
+      }
+
+      // Jika POST belum sukses, coba via GET parameter
+      if (!gasSynced) {
+        try {
+          const getUrl = `${this.getAppsScriptUrl()}?action=updateSettings&payload=${encodeURIComponent(JSON.stringify(newSettings))}&_t=${Date.now()}`;
+          const resGet = await fetch(getUrl, { cache: 'no-store' });
+          const jsonGet = await resGet.json();
+          if (jsonGet && jsonGet.success) {
+            gasSynced = true;
+          }
+        } catch (errGet) {
+          console.warn('Apps Script updateSettings GET failed:', errGet);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      gasSynced: gasSynced,
+      message: gasSynced
+        ? 'Pengaturan rekening dan sistem berhasil disinkronkan ke Google Spreadsheet!'
+        : 'Pengaturan berhasil diperbarui dan disimpan di database lokal!'
+    };
   }
 
   async clearDemoData() {
-    // 1. Panggil endpoint clearDemoData di Google Apps Script (POST & GET)
-    try {
-      await fetch(this.getAppsScriptUrl(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'clearDemoData' })
-      });
-    } catch (e) {
-      console.warn("Apps Script clearDemoData POST:", e);
-    }
+    let gasSynced = false;
+    if (this.isOnlineMode()) {
+      // 1. Panggil endpoint clearDemoData di Google Apps Script (POST & GET)
+      try {
+        const postRes = await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'clearDemoData' })
+        });
+        const postJson = await postRes.json();
+        if (postJson && postJson.success) gasSynced = true;
+      } catch (e) {
+        console.warn("Apps Script clearDemoData POST:", e);
+      }
 
-    try {
-      await fetch(`${this.getAppsScriptUrl()}?action=clearDemoData`);
-    } catch (e) {
-      console.warn("Apps Script clearDemoData GET:", e);
+      if (!gasSynced) {
+        try {
+          const getRes = await fetch(`${this.getAppsScriptUrl()}?action=clearDemoData&_t=${Date.now()}`, { cache: 'no-store' });
+          const getJson = await getRes.json();
+          if (getJson && getJson.success) gasSynced = true;
+        } catch (e) {
+          console.warn("Apps Script clearDemoData GET:", e);
+        }
+      }
     }
 
     // 2. Bersihkan local storage
@@ -610,12 +910,24 @@ class AmbulanApi {
     db.donasi_masuk = [];
     db.pengeluaran = [];
     db.layanan_ambulan = [];
+    db.users = [
+      { id: "USR-001", username: "adminambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" }
+    ];
     db.audit_log = [
-      { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "admin", action: "CLEAN_DATABASE", detail: "Seluruh data demo berhasil dibersihkan" }
+      { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "adminambulanmaisya", action: "CLEAN_DATABASE", detail: "Seluruh data demo dibersihkan, akun admin: adminambulanmaisya aktif" }
     ];
     this.saveDb(db);
 
-    return { success: true, message: "Seluruh data demo berhasil dibersihkan dari sistem!" };
+    // Pastikan filter demo tetap aktif
+    this.setFilterDemoData(true);
+
+    return {
+      success: true,
+      gasSynced: gasSynced,
+      message: gasSynced
+        ? "Seluruh data demo berhasil dibersihkan dari Google Spreadsheet dan sistem lokal!"
+        : "Seluruh data demo lokal telah dibersihkan secara tuntas. Mode produksi bersih aktif."
+    };
   }
 
   resetToDefault() {

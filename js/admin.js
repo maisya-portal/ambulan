@@ -405,26 +405,245 @@ class AdminPortal {
   }
 
   populateSettingsForm() {
-    if (!this.adminData || !this.adminData.settings) return;
-    const s = this.adminData.settings;
-
     const inputTarget = document.getElementById('setting-target-donasi');
-    const inputBsi = document.getElementById('setting-rek-bsi');
-    const inputMuamalat = document.getElementById('setting-rek-muamalat');
+    const inputBank1Nama = document.getElementById('setting-bank1-nama');
+    const inputBank1Norek = document.getElementById('setting-bank1-norek');
+    const inputBank1AtasNama = document.getElementById('setting-bank1-atas-nama');
+
+    const inputBank2Nama = document.getElementById('setting-bank2-nama');
+    const inputBank2Norek = document.getElementById('setting-bank2-norek');
+    const inputBank2AtasNama = document.getElementById('setting-bank2-atas-nama');
+
     const inputHotline = document.getElementById('setting-hotline');
     const inputWa = document.getElementById('setting-wa-konfirmasi');
+    const inputDriver = document.getElementById('setting-kontak-driver');
     const inputAlamat = document.getElementById('setting-alamat');
+
+    const inputBsiLegacy = document.getElementById('setting-rek-bsi');
+    const inputMuamalatLegacy = document.getElementById('setting-rek-muamalat');
+
     const inputAppsScriptUrl = document.getElementById('setting-apps-script-url');
     const checkOnlineMode = document.getElementById('setting-online-mode-toggle');
+    const checkFilterDemo = document.getElementById('setting-filter-demo-toggle');
 
-    if (inputTarget) inputTarget.value = s.target_donasi || 250000000;
-    if (inputBsi) inputBsi.value = s.rekening_bsi || '';
-    if (inputMuamalat) inputMuamalat.value = s.rekening_muamalat || '';
-    if (inputHotline) inputHotline.value = s.hotline_darurat || '';
-    if (inputWa) inputWa.value = s.wa_konfirmasi || '';
-    if (inputAlamat) inputAlamat.value = s.alamat_ponpes || '';
     if (inputAppsScriptUrl) inputAppsScriptUrl.value = window.ambulanApi.getAppsScriptUrl();
     if (checkOnlineMode) checkOnlineMode.checked = window.ambulanApi.isOnlineMode();
+    if (checkFilterDemo) checkFilterDemo.checked = window.ambulanApi.isFilterDemoData();
+
+    const s = (this.adminData && this.adminData.settings) ? this.adminData.settings : (window.ambulanApi.getDb()?.settings || {});
+
+    // Target
+    if (inputTarget) inputTarget.value = s.target_donasi || 250000000;
+
+    // Bank 1
+    const b1Nama = s.bank1_nama || 'Bank Syariah Indonesia (BSI)';
+    const b1Norek = s.bank1_norek || (s.rekening_bsi ? (s.rekening_bsi.match(/\d[\d\s-]{4,}\d/) || [s.rekening_bsi])[0].replace(/[^\d]/g, '') : '7123456789');
+    let b1An = s.bank1_atas_nama || (s.rekening_bsi && s.rekening_bsi.includes('a.n.') ? s.rekening_bsi.split('a.n.')[1].trim() : 'YAYASAN IMAM SYAFII BREBES');
+
+    if (inputBank1Nama) inputBank1Nama.value = b1Nama;
+    if (inputBank1Norek) inputBank1Norek.value = b1Norek;
+    if (inputBank1AtasNama) inputBank1AtasNama.value = b1An;
+
+    // Bank 2
+    const b2Nama = s.bank2_nama || 'Bank Muamalat';
+    const b2Norek = s.bank2_norek || (s.rekening_muamalat ? (s.rekening_muamalat.match(/\d[\d\s-]{4,}\d/) || [s.rekening_muamalat])[0].replace(/[^\d]/g, '') : '5010099888');
+    let b2An = s.bank2_atas_nama || (s.rekening_muamalat && s.rekening_muamalat.includes('a.n.') ? s.rekening_muamalat.split('a.n.')[1].trim() : "Ponpes Imam Syafi'i Brebes");
+
+    if (inputBank2Nama) inputBank2Nama.value = b2Nama;
+    if (inputBank2Norek) inputBank2Norek.value = b2Norek;
+    if (inputBank2AtasNama) inputBank2AtasNama.value = b2An;
+
+    // Legacy
+    if (inputBsiLegacy) inputBsiLegacy.value = `${b1Norek} a.n. ${b1An}`;
+    if (inputMuamalatLegacy) inputMuamalatLegacy.value = `${b2Norek} a.n. ${b2An}`;
+
+    // Kontak
+    if (inputHotline) inputHotline.value = s.hotline_darurat || '0812-9154-2134 (Ustadz Tegar)';
+    if (inputWa) inputWa.value = s.wa_konfirmasi || '6281291542134';
+    if (inputDriver) inputDriver.value = s.kontak_driver || '0857-1234-5678 (Driver Pak Slamet)';
+    if (inputAlamat) inputAlamat.value = s.alamat_ponpes || 'Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218';
+
+    this.updateConnectionBadges(true);
+  }
+
+  async runTestConnection(manualUrl = null) {
+    const inputUrl = document.getElementById('setting-apps-script-url');
+    const targetUrl = (manualUrl || (inputUrl ? inputUrl.value.trim() : '')) || window.ambulanApi.getAppsScriptUrl();
+    
+    const btnTest = document.getElementById('btn-test-connection');
+    const resultBox = document.getElementById('connection-test-result');
+    const badge = document.getElementById('connection-quick-badge');
+
+    const originalText = btnTest ? btnTest.innerHTML : '<i class="fa-solid fa-plug-circle-check"></i> Tes Koneksi Apps Script';
+    if (btnTest) {
+      btnTest.disabled = true;
+      btnTest.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sedang Menguji Koneksi...';
+    }
+
+    if (badge) {
+      badge.innerHTML = '<span class="pulse-amber"></span> Memeriksa...';
+      badge.style.background = '#fef3c7';
+      badge.style.color = '#92400e';
+      badge.style.borderColor = '#fde68a';
+    }
+
+    if (resultBox) {
+      resultBox.style.display = 'block';
+      resultBox.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.75rem; color: #065f46;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.25rem;"></i>
+          <div>
+            <strong>Menguji konektivitas ke Google Apps Script...</strong>
+            <div style="font-size: 0.8rem; color: #64748b;">Menghubungi endpoint: ${targetUrl}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    try {
+      const res = await window.ambulanApi.testConnection(targetUrl);
+
+      if (res.success) {
+        if (badge) {
+          badge.innerHTML = `<span class="pulse-green"></span> Terhubung (${res.pingLatency}ms)`;
+          badge.style.background = '#ecfdf5';
+          badge.style.color = '#065f46';
+          badge.style.borderColor = '#a7f3d0';
+        }
+        this.updateConnectionBadges(true);
+
+        const formattedDate = res.serverTimestamp ? new Date(res.serverTimestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }) : '-';
+        const formatRp = (num) => "Rp " + Number(num || 0).toLocaleString('id-ID');
+
+        if (resultBox) {
+          resultBox.className = 'card';
+          resultBox.style.display = 'block';
+          resultBox.style.border = '1px solid #10b981';
+          resultBox.style.background = '#f0fdf4';
+          resultBox.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid #a7f3d0; padding-bottom: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: #065f46;">
+                <i class="fa-solid fa-circle-check" style="font-size: 1.4rem; color: #10b981;"></i>
+                <div>
+                  <h4 style="margin: 0; font-size: 1.05rem; color: #064e3b;">Koneksi Google Apps Script Berhasil Terhubung!</h4>
+                  <small style="color: #047857;">Endpoint aktif, merespon cepat, dan tersinkronisasi dengan Google Spreadsheet.</small>
+                </div>
+              </div>
+              <span class="badge badge-success" style="font-size: 0.82rem; padding: 0.4rem 0.75rem;">
+                <i class="fa-solid fa-bolt"></i> Latensi: ${res.pingLatency} ms (Sangat Cepat)
+              </span>
+            </div>
+
+            <div class="diagnostic-grid">
+              <div class="diagnostic-item">
+                <span class="diagnostic-item-label">Status Server API</span>
+                <span class="diagnostic-item-value" style="color: #065f46;">
+                  <i class="fa-solid fa-check text-success"></i> ${res.serverMessage}
+                </span>
+              </div>
+              <div class="diagnostic-item">
+                <span class="diagnostic-item-label">Database Spreadsheet</span>
+                <span class="diagnostic-item-value" style="color: #065f46;">
+                  <i class="fa-solid fa-table text-success"></i> ${res.spreadsheetConnected ? 'Terkoneksi & Siap' : 'Terhubung'}
+                </span>
+              </div>
+              <div class="diagnostic-item">
+                <span class="diagnostic-item-label">Mode Produksi</span>
+                <span class="diagnostic-item-value" style="color: #0d7a57;">
+                  <i class="fa-solid fa-shield-halved text-success"></i> Murni Tanpa Dummy
+                </span>
+              </div>
+              <div class="diagnostic-item">
+                <span class="diagnostic-item-label">Target Donasi Resmi</span>
+                <span class="diagnostic-item-value" style="color: #0d7a57;">
+                  ${formatRp(res.targetDonasi)}
+                </span>
+              </div>
+            </div>
+
+            <div style="background: #ffffff; border-radius: 8px; border: 1px solid #d1fae5; padding: 0.75rem 1rem; margin-top: 0.75rem; font-size: 0.82rem; color: #334155; line-height: 1.5;">
+              <div><strong>URL Web App:</strong> <span style="font-family: monospace; word-break: break-all; color: #0d7a57;">${res.url}</span></div>
+              <div style="margin-top: 0.25rem;"><strong>Waktu Respon Server:</strong> ${formattedDate} WIB</div>
+              <div style="margin-top: 0.25rem;"><strong>Program Ambulan:</strong> ${res.namaProgram}</div>
+            </div>
+
+            <div style="margin-top: 0.75rem; display: flex; justify-content: flex-end;">
+              <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('connection-test-result').style.display='none'">
+                Tutup Hasil Diagnostik
+              </button>
+            </div>
+          `;
+        }
+
+        window.app.showToast('Koneksi Google Apps Script berhasil diuji! (Latensi: ' + res.pingLatency + 'ms)', 'success');
+      } else {
+        if (badge) {
+          badge.innerHTML = '<span class="pulse-red"></span> Gagal Terhubung';
+          badge.style.background = '#fef2f2';
+          badge.style.color = '#991b1b';
+          badge.style.borderColor = '#fecaca';
+        }
+        this.updateConnectionBadges(false);
+
+        if (resultBox) {
+          resultBox.className = 'card';
+          resultBox.style.display = 'block';
+          resultBox.style.border = '1px solid #ef4444';
+          resultBox.style.background = '#fff5f5';
+          resultBox.innerHTML = `
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem; color: #991b1b; margin-bottom: 0.75rem;">
+              <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem; color: #ef4444; margin-top: 0.1rem;"></i>
+              <div>
+                <h4 style="margin: 0; color: #b91c1c;">Gagal Terhubung ke Google Apps Script</h4>
+                <div style="font-size: 0.85rem; color: #7f1d1d; margin-top: 0.25rem;">${res.error || 'Server tidak merespon.'}</div>
+              </div>
+            </div>
+            
+            <div style="background: #ffffff; border-radius: 8px; border: 1px solid #fecaca; padding: 0.75rem 1rem; font-size: 0.82rem; color: #374151; line-height: 1.6;">
+              <strong>Langkah Pemeriksaan:</strong>
+              <ul style="margin: 0.4rem 0 0 1.25rem; padding: 0;">
+                <li>Pastikan URL berakhiran <code>/exec</code> (bukan <code>/edit</code>).</li>
+                <li>Pastikan opsi <strong>"Who has access"</strong> saat deploy di Google Apps Script dipilih <strong>"Anyone"</strong>.</li>
+                <li>Periksa koneksi internet perangkat Anda.</li>
+                <li>Gunakan tombol <strong>"Reset ke URL Resmi"</strong> untuk memulihkan konfigurasi bawaan Ponpes Imam Syafi'i.</li>
+              </ul>
+            </div>
+
+            <div style="margin-top: 0.75rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+              <button type="button" class="btn btn-sm btn-outline" onclick="window.adminPortal.runTestConnection()">
+                <i class="fa-solid fa-rotate"></i> Coba Lagi
+              </button>
+              <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('connection-test-result').style.display='none'">
+                Tutup
+              </button>
+            </div>
+          `;
+        }
+
+        window.app.showToast('Gagal terhubung ke Apps Script: ' + (res.error || 'Timeout'), 'error');
+      }
+    } catch (e) {
+      console.error('Error running test connection:', e);
+      window.app.showToast('Kesalahan pengujian koneksi: ' + e.toString(), 'error');
+    } finally {
+      if (btnTest) {
+        btnTest.disabled = false;
+        btnTest.innerHTML = originalText;
+      }
+    }
+  }
+
+  updateConnectionBadges(isOnline = true) {
+    const sidebarStatus = document.getElementById('admin-sidebar-status');
+    if (sidebarStatus) {
+      if (isOnline) {
+        sidebarStatus.innerHTML = '<span class="pulse-green"></span> Apps Script Online';
+        sidebarStatus.style.color = '#a7f3d0';
+      } else {
+        sidebarStatus.innerHTML = '<span class="pulse-red"></span> Apps Script Offline';
+        sidebarStatus.style.color = '#fca5a5';
+      }
+    }
   }
 
   openVerifyModal(donasiId) {
@@ -729,24 +948,42 @@ class AdminPortal {
     if (formSettings) {
       formSettings.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const targetVal = Number(document.getElementById('setting-target-donasi').value) || 250000000;
-        const bsiVal = document.getElementById('setting-rek-bsi').value.trim();
-        const muamalatVal = document.getElementById('setting-rek-muamalat').value.trim();
-        const hotlineVal = document.getElementById('setting-hotline').value.trim();
-        const waVal = document.getElementById('setting-wa-konfirmasi').value.trim();
-        const alamatVal = document.getElementById('setting-alamat').value.trim();
-        const appsScriptUrl = document.getElementById('setting-apps-script-url').value.trim();
-        const onlineMode = document.getElementById('setting-online-mode-toggle').checked;
+        const targetVal = Number(document.getElementById('setting-target-donasi')?.value) || 250000000;
+        
+        const bank1Nama = document.getElementById('setting-bank1-nama')?.value.trim() || 'Bank Syariah Indonesia (BSI)';
+        const bank1Norek = (document.getElementById('setting-bank1-norek')?.value.trim() || '7123456789').replace(/[^\d]/g, '');
+        const bank1AtasNama = document.getElementById('setting-bank1-atas-nama')?.value.trim() || 'YAYASAN IMAM SYAFII BREBES';
+
+        const bank2Nama = document.getElementById('setting-bank2-nama')?.value.trim() || 'Bank Muamalat';
+        const bank2Norek = (document.getElementById('setting-bank2-norek')?.value.trim() || '5010099888').replace(/[^\d]/g, '');
+        const bank2AtasNama = document.getElementById('setting-bank2-atas-nama')?.value.trim() || "Ponpes Imam Syafi'i Brebes";
+
+        const hotlineVal = document.getElementById('setting-hotline')?.value.trim() || '0812-9154-2134 (Ustadz Tegar)';
+        const waVal = (document.getElementById('setting-wa-konfirmasi')?.value.trim() || '6281291542134').replace(/[^\d]/g, '');
+        const driverVal = document.getElementById('setting-kontak-driver')?.value.trim() || '0857-1234-5678 (Driver Pak Slamet)';
+        const alamatVal = document.getElementById('setting-alamat')?.value.trim() || '';
+
+        const appsScriptUrl = document.getElementById('setting-apps-script-url')?.value.trim() || '';
+        const onlineMode = document.getElementById('setting-online-mode-toggle')?.checked ?? true;
+        const filterDemo = document.getElementById('setting-filter-demo-toggle')?.checked ?? true;
 
         window.ambulanApi.setAppsScriptUrl(appsScriptUrl);
         window.ambulanApi.setOnlineMode(onlineMode);
+        window.ambulanApi.setFilterDemoData(filterDemo);
 
         const newSettings = {
           target_donasi: targetVal,
-          rekening_bsi: bsiVal,
-          rekening_muamalat: muamalatVal,
+          bank1_nama: bank1Nama,
+          bank1_norek: bank1Norek,
+          bank1_atas_nama: bank1AtasNama,
+          bank2_nama: bank2Nama,
+          bank2_norek: bank2Norek,
+          bank2_atas_nama: bank2AtasNama,
+          rekening_bsi: `${bank1Norek} a.n. ${bank1AtasNama}`,
+          rekening_muamalat: `${bank2Norek} a.n. ${bank2AtasNama}`,
           hotline_darurat: hotlineVal,
           wa_konfirmasi: waVal,
+          kontak_driver: driverVal,
           alamat_ponpes: alamatVal
         };
 
@@ -758,6 +995,38 @@ class AdminPortal {
         } catch (e) {
           window.app.showToast('Gagal menyimpan pengaturan: ' + e.toString(), 'error');
         }
+      });
+    }
+
+    // Tombol Tes Koneksi Apps Script
+    const btnTest = document.getElementById('btn-test-connection');
+    if (btnTest) {
+      btnTest.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.runTestConnection();
+      });
+    }
+
+    // Tombol Reset ke URL Resmi
+    const btnResetUrl = document.getElementById('btn-reset-apps-script-url');
+    if (btnResetUrl) {
+      btnResetUrl.addEventListener('click', (e) => {
+        e.preventDefault();
+        const inputUrl = document.getElementById('setting-apps-script-url');
+        const checkOnline = document.getElementById('setting-online-mode-toggle');
+        const checkFilter = document.getElementById('setting-filter-demo-toggle');
+
+        const defaultUrl = 'https://script.google.com/macros/s/AKfycbzWpWylCScaz13HUfjbdVyMyfYI2ePlrucY0jgfg4DZgJtLc60NXwhycAnOSFE_2SGP/exec';
+        if (inputUrl) inputUrl.value = defaultUrl;
+        if (checkOnline) checkOnline.checked = true;
+        if (checkFilter) checkFilter.checked = true;
+
+        window.ambulanApi.setAppsScriptUrl(defaultUrl);
+        window.ambulanApi.setOnlineMode(true);
+        window.ambulanApi.setFilterDemoData(true);
+
+        window.app.showToast("URL Apps Script direset ke deployment resmi Ponpes Imam Syafi'i", "info");
+        this.runTestConnection(defaultUrl);
       });
     }
 
