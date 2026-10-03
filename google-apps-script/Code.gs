@@ -708,32 +708,65 @@ function updateSettings(data) {
 }
 
 function clearDemoData() {
-  const ss = getSS();
-  const sheetsToClear = ["donatur", "donasi_masuk", "pengeluaran", "layanan_ambulan"];
-
-  sheetsToClear.forEach(function(name) {
-    const sheet = ss.getSheetByName(name);
-    if (sheet && sheet.getLastRow() > 1) {
-      sheet.deleteRows(2, sheet.getLastRow() - 1);
+  try {
+    const ss = getSS();
+    if (!ss) {
+      Logger.log("Spreadsheet tidak dapat diakses.");
+      return { success: false, message: "Spreadsheet tidak dapat diakses" };
     }
-  });
 
-  // Pastikan akun user direset HANYA menyisakan adminambulanmaisya
-  let userSheet = ss.getSheetByName("users");
-  if (userSheet) {
-    if (userSheet.getLastRow() > 1) {
-      userSheet.deleteRows(2, userSheet.getLastRow() - 1);
+    const sheetsToClear = ["donatur", "donasi_masuk", "pengeluaran", "layanan_ambulan"];
+
+    sheetsToClear.forEach(function(name) {
+      try {
+        const sheet = ss.getSheetByName(name);
+        if (sheet && sheet.getLastRow() > 1) {
+          const numRows = sheet.getLastRow() - 1;
+          const numCols = Math.max(sheet.getLastColumn(), 1);
+          sheet.getRange(2, 1, numRows, numCols).clearContent();
+          Logger.log("Sheet " + name + " berhasil dibersihkan (" + numRows + " baris).");
+        }
+      } catch (e) {
+        Logger.log("Peringatan bersihkan sheet " + name + ": " + e.toString());
+      }
+    });
+
+    // Reset akun user: sisakan HANYA adminambulanmaisya
+    try {
+      let userSheet = ss.getSheetByName("users");
+      if (userSheet) {
+        if (userSheet.getLastRow() > 1) {
+          const numRows = userSheet.getLastRow() - 1;
+          const numCols = Math.max(userSheet.getLastColumn(), 8);
+          userSheet.getRange(2, 1, numRows, numCols).clearContent();
+        }
+        userSheet.getRange(2, 1, 1, 8).setValues([[
+          "USR-001", "adminambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()
+        ]]);
+        Logger.log("Akun users berhasil direset ke adminambulanmaisya.");
+      }
+    } catch (e) {
+      Logger.log("Peringatan reset users: " + e.toString());
     }
-    userSheet.appendRow([
-      "USR-001", "adminambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()
-    ]);
+
+    try {
+      SpreadsheetApp.flush();
+    } catch (e) {
+      // flush ignore
+    }
+
+    Logger.log("Proses clearDemoData selesai sukses!");
+    return {
+      success: true,
+      message: "Seluruh data transaksi demo berhasil dibersihkan! Akun admin 'adminambulanmaisya' siap digunakan."
+    };
+  } catch (err) {
+    Logger.log("Error fatal clearDemoData: " + err.toString());
+    return {
+      success: false,
+      error: err.toString()
+    };
   }
-
-  logAudit("SUPERADMIN", "CLEAR_DEMO_DATA", "Seluruh data transaksi demo dibersihkan. Akun admin: adminambulanmaisya disiapkan.");
-  return {
-    success: true,
-    message: "Seluruh data transaksi demo berhasil dibersihkan! Akun admin 'adminambulanmaisya' siap digunakan."
-  };
 }
 
 // -------------------------------------------------------------
