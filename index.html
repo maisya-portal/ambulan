@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Layanan & Donasi Ambulan - Ponpes Imam Syafi'i Brebes</title>
+  
+  <!-- SEO & PWA Meta -->
+  <meta name="description" content="Aplikasi resmi pengelolaan dan transparansi donasi serta layanan armada ambulan medis gratis santri dan kaum dhuafa Pondok Pesantren Imam Syafi'i Brebes.">
+  <meta name="theme-color" content="#0d7a57">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 CDN for Crisp Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Application CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       HEADER / NAVBAR
+       ========================================================================= -->
+  <header class="site-header" id="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <!-- Logo & Brand -->
+        <div class="brand-wrapper" onclick="window.app.navigateTo('beranda')">
+          <img src="assets/logo.svg" alt="Logo Ambulan Maisya" class="brand-logo">
+          <div class="brand-info">
+            <span class="brand-title">
+              AMBULAN MAISYA <i class="fa-solid fa-truck-medical text-primary" style="color: #0d7a57; font-size: 0.95rem;"></i>
+            </span>
+            <span class="brand-subtitle">Ponpes Imam Syafi'i Brebes</span>
+          </div>
+        </div>
+
+        <!-- Navigation Menu Desktop -->
+        <nav>
+          <ul class="nav-menu">
+            <li><a class="nav-link active" data-view="beranda"><i class="fa-solid fa-house"></i> Beranda</a></li>
+            <li><a class="nav-link" data-view="program"><i class="fa-solid fa-ambulance"></i> Program</a></li>
+            <li><a class="nav-link" data-view="donasi"><i class="fa-solid fa-heart"></i> Donasi</a></li>
+            <li><a class="nav-link" data-view="pembayaran"><i class="fa-solid fa-credit-card"></i> Pembayaran</a></li>
+            <li><a class="nav-link" data-view="progress"><i class="fa-solid fa-chart-line"></i> Progress</a></li>
+            <li><a class="nav-link" data-view="transparansi"><i class="fa-solid fa-clipboard-list"></i> Transparansi</a></li>
+            <li><a class="nav-link" data-view="kontak"><i class="fa-solid fa-phone"></i> Kontak</a></li>
+          </ul>
+        </nav>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+          <button class="btn-emergency" onclick="window.app.openModal('modal-panggil-ambulan')">
+            <i class="fa-solid fa-phone-volume"></i> <span>Panggil Ambulan</span>
+          </button>
+          <button class="btn-admin-login" onclick="window.app.openModal('modal-login-admin')" title="Portal Admin">
+            <i class="fa-solid fa-lock"></i> <span>Admin</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Emergency Ticker Bar -->
+  <div style="background: #b91c1c; color: #ffffff; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-align: center;">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <span>SIAGA DARURAT 24 JAM: Hotline Ambulan Ponpes Imam Syafi'i Brebes <strong>0812-3456-7890</strong> (100% Gratis Santri & Dhuafa)</span>
+  </div>
+
+  <!-- =========================================================================
+       MAIN PUBLIC CONTAINER
+       ========================================================================= -->
+  <main class="main-content" id="public-container">
+
+    <!-- -----------------------------------------------------------------------
+         VIEW: 🏠 BERANDA
+         ----------------------------------------------------------------------- -->
+    <section class="app-view" id="view-beranda">
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <div class="hero-pattern"></div>
+        <div class="container">
+          <div class="hero-grid">
+            <div>
+              <div class="hero-tag">
+                <i class="fa-solid fa-hand-holding-heart"></i> Wakaf & Sedekah Jariyah Ambulan
+              </div>
+              <h1 class="hero-title">
+                Ambulan Siaga Medis Santri & <span>Dhuafa Brebes</span>
+              </h1>
+              <p class="hero-desc">
+                Mari bersama mewujudkan armada mobil ambulan medis siaga untuk melayani 1.200+ santri penghafal Al-Qur'an serta bantuan medis darurat 100% bebas biaya bagi kaum dhuafa dan fakir miskin di wilayah Brebes dan sekitarnya.
+              </p>
+              <div class="hero-actions">
+                <button class="btn btn-gold" onclick="window.app.navigateTo('donasi')">
+                  <i class="fa-solid fa-heart"></i> Donasi Sekarang
+                </button>
+                <button class="btn btn-primary" onclick="window.app.navigateTo('progress')">
+                  <i class="fa-solid fa-chart-pie"></i> Cek Progress Dana
+                </button>
+                <button class="btn btn-outline" style="color: #ffffff; border-color: rgba(255,255,255,0.4);" onclick="window.app.openModal('modal-panggil-ambulan')">
+                  <i class="fa-solid fa-truck-medical"></i> Panggil Ambulan
+                </button>
+              </div>
+            </div>
+
+            <!-- Hero Live Progress Card -->
+            <div>
+              <div class="hero-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span style="font-weight: 700; color: #fbbf24; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em;">
+                    <i class="fa-solid fa-signal"></i> Target Pencapaian
+                  </span>
+                  <span class="badge badge-warning" id="progress-persen-badge">Aktif</span>
+                </div>
+                <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 0.25rem;">Total Donasi Terhimpun:</div>
+                <div style="font-size: 2.2rem; font-weight: 900; color: #ffffff; line-height: 1.1; margin-bottom: 0.5rem;" id="stat-terkumpul-hero">
+                  Rp 44.500.000
+                </div>
+                <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">
+                  dari target kebutuhan <strong>Rp 250.000.000</strong>
+                </div>
+
+                <!-- Mini progress bar -->
+                <div style="height: 12px; background: rgba(255,255,255,0.2); border-radius: 9999px; overflow: hidden; margin-bottom: 1.25rem;">
+                  <div id="hero-progress-fill" style="width: 18%; height: 100%; background: linear-gradient(90deg, #10b981, #fbbf24); border-radius: 9999px;"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1rem;">
+                  <div>
+                    <div style="font-size: 0.75rem; color: #cbd5e1;">Target Armada:</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Hiace / APV Medis</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 0.75rem; color: #cbd5e1;">Penerima Manfaat:</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Santri & Dhuafa</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Cards Section -->
+      <div class="container" style="margin-bottom: 3.5rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <h2 style="font-size: 2rem; color: #064e3b;">Layanan Utama Ambulan Maisya</h2>
+          <p style="color: #64748b; max-width: 600px; margin: 0.5rem auto 0;">Armada sosial keumatan didedikasikan untuk kemaslahatan santri, asatidz, dan masyarakat sekitar pesantren.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
+          <div class="card" style="border-top: 4px solid #0d7a57;">
+            <div style="width: 52px; height: 52px; background: #ecfdf5; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #0d7a57; font-size: 1.6rem; margin-bottom: 1rem;">
+              <i class="fa-solid fa-hospital-user"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Darurat Medis Santri</h3>
+            <p style="color: #64748b; font-size: 0.9rem;">Pertolongan dan evakuasi cepat bagi 1.200+ santri asrama yang sakit gawat ke IGD RSUD Brebes & RSI Harapan Anda Tegal.</p>
+          </div>
+
+          <div class="card" style="border-top: 4px solid #d97706;">
+            <div style="width: 52px; height: 52px; background: #fffbeb; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 1.6rem; margin-bottom: 1rem;">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">100% Gratis Dhuafa</h3>
+            <p style="color: #64748b; font-size: 0.9rem;">Layanan antar-jemput pengobatan pasien dhuafa, kaum fakir miskin, dan anak yatim tanpa dipungut biaya sepeser pun.</p>
+          </div>
+
+          <div class="card" style="border-top: 4px solid #0284c7;">
+            <div style="width: 52px; height: 52px; background: #f0f9ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #0284c7; font-size: 1.6rem; margin-bottom: 1rem;">
+              <i class="fa-solid fa-kit-medical"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Fasilitas Medis Lengkap</h3>
+            <p style="color: #64748b; font-size: 0.9rem;">Dilengkapi tabung oksigen medis 6m3, brankar roll-in stretcher otomatis, suction pump, sirine patwal, dan obat emergensi.</p>
+          </div>
+
+          <div class="card" style="border-top: 4px solid #10b981;">
+            <div style="width: 52px; height: 52px; background: #f0fdf4; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.6rem; margin-bottom: 1rem;">
+              <i class="fa-solid fa-moon"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Pengantaran Jenazah</h3>
+            <p style="color: #64748b; font-size: 0.9rem;">Fasilitas antar jemput jenazah secara syar'i, khusyuk, cepat, dan bermartabat ke tempat pemakaman keluarga.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quote / Hadith Banner -->
+      <div class="container" style="margin-bottom: 3.5rem;">
+        <div style="background: linear-gradient(135deg, #064e3b, #0d7a57); border-radius: var(--radius-xl); padding: 2.5rem; color: #ffffff; text-align: center; box-shadow: var(--shadow-green);">
+          <div style="font-size: 2.2rem; color: #fbbf24; margin-bottom: 1rem;"><i class="fa-solid fa-quote-left"></i></div>
+          <p style="font-size: 1.25rem; font-weight: 600; line-height: 1.6; max-width: 800px; margin: 0 auto 1rem;">
+            "Barangsiapa melepaskan satu kesusahan seorang mukmin di dunia, niscaya Allah akan melepaskan darinya satu kesusahan pada hari kiamat. Dan Allah senantiasa menolong hamba-Nya selama hamba itu menolong saudaranya."
+          </p>
+          <div style="font-weight: 700; color: #fbbf24; font-size: 0.95rem;">(HR. Muslim No. 2699)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+         VIEW: 🚑 PROGRAM AMBULANCE
+         ----------------------------------------------------------------------- -->
+    <section class="app-view" id="view-program" style="display: none; padding-top: 2rem;">
+      <div class="container">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+          <span class="badge badge-primary" style="margin-bottom: 0.5rem;">Detail Program Sosial</span>
+          <h1 style="font-size: 2.5rem; color: #064e3b;">Program Ambulan Ponpes Imam Syafi'i Brebes</h1>
+          <p style="color: #64748b; max-width: 700px; margin: 0.5rem auto 0;">Mewujudkan sarana transportasi medis darurat yang memadai, higienis, dan cepat untuk santri asrama dan masyarakat Brebes.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2rem; margin-bottom: 3rem;">
+          <div>
+            <div class="card" style="margin-bottom: 1.5rem;">
+              <h3 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-circle-info text-primary"></i> Latar Belakang & Urgensi Program</h3>
+              <p style="color: #475569; margin-bottom: 1rem;">
+                Pondok Pesantren Imam Syafi'i Brebes saat ini membina lebih dari <strong>1.200 santriwan dan santriwati</strong> yang bermukim di asrama. Jarak pesantren menuju Rumah Sakit Rujukan Utama (RSUD Brebes / RSI Harapan Anda Tegal) membutuhkan sarana transportasi khusus yang dilengkapi oksigen dan fasilitas pertolongan pertama ketika terjadi santri sakit darurat tengah malam.
+              </p>
+              <p style="color: #475569;">
+                Selain untuk santri, armada ini juga akan melayani masyarakat desa sekitar pesantren yang sebagian besar adalah keluarga berpenghasilan rendah yang kesulitan menyewa ambulan komersial.
+              </p>
+            </div>
+
+            <div class="card">
+              <h3 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-list-check text-primary"></i> Spesifikasi & Fasilitas Armada</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border-left: 3px solid #0d7a57;">
+                  <strong>Unit Kendaraan</strong>
+                  <div style="font-size: 0.85rem; color: #64748b;">Toyota HiAce Commuter / Suzuki APV Luxury Karoseri Medis</div>
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border-left: 3px solid #0d7a57;">
+                  <strong>Tabung Oksigen Medis</strong>
+                  <div style="font-size: 0.85rem; color: #64748b;">2 Unit Tabung O2 Besar 6m3 + Regulator Flowmeter & Masker</div>
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border-left: 3px solid #0d7a57;">
+                  <strong>Brankar Stretcher</strong>
+                  <div style="font-size: 0.85rem; color: #64748b;">Roll-in Automatic Stretcher + Safety Lock & Matras Medis</div>
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border-left: 3px solid #0d7a57;">
+                  <strong>Emergency Kit & Suction</strong>
+                  <div style="font-size: 0.85rem; color: #64748b;">Kotak P3K Lengkap, Suction Lendir, Tensimeter, Termometer</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="background: #ecfdf5; border-color: #a7f3d0; margin-bottom: 1.5rem;">
+              <h3 style="color: #064e3b; margin-bottom: 0.75rem;"><i class="fa-solid fa-bell text-danger"></i> Butuh Panggilan Ambulan?</h3>
+              <p style="font-size: 0.9rem; color: #047857; margin-bottom: 1.25rem;">
+                Jika ada santri atau warga yang membutuhkan pertolongan ambulan rujukan segera, tekan tombol di bawah ini:
+              </p>
+              <button class="btn btn-emergency btn-block" onclick="window.app.openModal('modal-panggil-ambulan')">
+                <i class="fa-solid fa-truck-medical"></i> Buka Formulir Panggilan Darurat
+              </button>
+            </div>
+
+            <div class="card">
+              <h4 style="margin-bottom: 1rem; color: #1e293b;">Rencana Alokasi Anggaran (Rp 250 Jt)</h4>
+              <div style="margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700;">
+                  <span>Unit Mobil & Karoseri Medis</span>
+                  <span>70% (Rp 175 Jt)</span>
+                </div>
+                <div style="height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden; margin-top: 4px;">
+                  <div style="width: 70%; height: 100%; background: #0d7a57;"></div>
+                </div>
+              </div>
+              <div style="margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700;">
+                  <span>Peralatan Medis & Tabung O2</span>
+                  <span>15% (Rp 37.5 Jt)</span>
+                </div>
+                <div style="height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden; margin-top: 4px;">
+                  <div style="width: 15%; height: 100%; background: #d97706;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700;">
+                  <span>Cadangan BBM, Servis & Operasional</span>
+                  <span>15% (Rp 37.5 Jt)</span>
+                </div>
+                <div style="height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden; margin-top: 4px;">
+                  <div style="width: 15%; height: 100%; background: #0284c7;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+         VIEW: ❤️ DONASI SEKARANG
+         ----------------------------------------------------------------------- -->
+    <section class="app-view" id="view-donasi" style="display: none; padding-top: 2rem;">
+      <div class="container">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <span class="badge badge-warning" style="margin-bottom: 0.5rem;">Sedekah Jariyah Yang Mengalir</span>
+          <h1 style="font-size: 2.4rem; color: #064e3b;">Formulir Donasi Ambulan Maisya</h1>
+          <p style="color: #64748b; max-width: 600px; margin: 0.5rem auto 0;">Setiap rupiah yang Anda salurkan akan menjadi saksi kebaikan dan menolong jiwa mereka yang membutuhkan pertolongan.</p>
+        </div>
+
+        <div class="donation-grid">
+          <!-- Step 1: Form Donasi -->
+          <div class="card">
+            <h3 style="margin-bottom: 1.25rem; color: #064e3b; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="background: #0d7a57; color: #ffffff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">1</span>
+              Tentukan Nominal Donasi
+            </h3>
+
+            <!-- Quick Nominal Buttons -->
+            <label class="form-label">Pilih Nominal Cepat:</label>
+            <div class="nominal-picker">
+              <button type="button" class="nominal-btn" data-value="25000">Rp 25.000</button>
+              <button type="button" class="nominal-btn" data-value="50000">Rp 50.000</button>
+              <button type="button" class="nominal-btn active" data-value="100000">Rp 100.000</button>
+              <button type="button" class="nominal-btn" data-value="250000">Rp 250.000</button>
+              <button type="button" class="nominal-btn" data-value="500000">Rp 500.000</button>
+              <button type="button" class="nominal-btn" data-value="1000000">Rp 1.000.000</button>
+            </div>
+
+            <!-- Custom Nominal -->
+            <div class="form-group">
+              <label class="form-label">Atau Masukkan Nominal Lainnya (Rp):</label>
+              <input type="text" id="input-custom-nominal" class="form-input" placeholder="Contoh: 2.500.000" value="100.000">
+            </div>
+
+            <!-- Program Target -->
+            <div class="form-group">
+              <label class="form-label">Akad / Peruntukan Donasi:</label>
+              <select id="select-donor-program" class="form-select">
+                <option value="Pengadaan Armada">Pengadaan Unit Armada Ambulan & Karoseri Medis</option>
+                <option value="Operasional Medis">Operasional Oksigen & Perlengkapan Medis</option>
+                <option value="Operasional BBM">Operasional Bahan Bakar & Servis Mesin</option>
+              </select>
+            </div>
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
+
+            <h3 style="margin-bottom: 1.25rem; color: #064e3b; display: flex; align-items: center; gap: 0.5rem;">
+              <span style="background: #0d7a57; color: #ffffff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">2</span>
+              Data Diri Donatur
+            </h3>
+
+            <!-- Nama & Hamba Allah Checkbox -->
+            <div class="form-group">
+              <label class="form-label">Nama Lengkap Donatur:</label>
+              <input type="text" id="input-donor-nama" class="form-input" placeholder="Masukkan nama Anda">
+              <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" id="check-hamba-allah" style="width: 18px; height: 18px; accent-color: #0d7a57;">
+                <label for="check-hamba-allah" style="font-size: 0.85rem; font-weight: 600; color: #475569; cursor: pointer;">
+                  Sembunyikan nama saya (Tampilkan sebagai Hamba Allah)
+                </label>
+              </div>
+            </div>
+
+            <!-- No WhatsApp -->
+            <div class="form-group">
+              <label class="form-label">Nomor WhatsApp Aktif:</label>
+              <input type="tel" id="input-donor-wa" class="form-input" placeholder="0812xxxxxxxx (Untuk kirim kwitansi resmi)">
+              <div class="form-helper">Kwitansi donasi dan konfirmasi sah akan dikirimkan ke nomor ini.</div>
+            </div>
+
+            <!-- Doa / Harapan -->
+            <div class="form-group">
+              <label class="form-label">Untaian Doa & Harapan Kebaikan (Opsional):</label>
+              <textarea id="input-donor-doa" class="form-textarea" rows="2" placeholder="Tuliskan doa atau niat baik sedekah Anda..."></textarea>
+            </div>
+
+            <!-- Tombol Lanjut -->
+            <button type="button" class="btn btn-primary btn-block" id="btn-lanjut-bayar" style="font-size: 1.1rem; padding: 0.9rem;">
+              Lanjut ke Pembayaran <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- Side Benefit Card -->
+          <div>
+            <div class="card" style="background: #fffbeb; border-color: #fde68a; margin-bottom: 1.5rem;">
+              <h4 style="color: #b45309; margin-bottom: 0.75rem;"><i class="fa-solid fa-award"></i> Keutamaan Sedekah Jariyah</h4>
+              <p style="font-size: 0.9rem; color: #78350f; line-height: 1.6;">
+                Ambulan ini akan beroperasi menolong ratusan santri penghafal Quran dan pasien dhuafa setiap tahunnya. Setiap putaran roda, tarikan napas oksigen, dan deru sirine pertolongan akan mencatatkan pahala jariyah yang tak terputus bagi Anda.
+              </p>
+            </div>
+
+            <div class="card">
+              <h4 style="margin-bottom: 1rem; color: #1e293b;">Alur Donasi Mudah & Transparan:</h4>
+              <ul style="list-style: none; padding-left: 0;">
+                <li style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                  <span style="background: #ecfdf5; color: #0d7a57; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</span>
+                  <div style="font-size: 0.9rem; color: #475569;">Isi nominal donasi dan identitas pada form di samping.</div>
+                </li>
+                <li style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                  <span style="background: #ecfdf5; color: #0d7a57; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</span>
+                  <div style="font-size: 0.9rem; color: #475569;">Transfer via QRIS atau Rekening Bank Syariah Indonesia (BSI) resmi pesantren.</div>
+                </li>
+                <li style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                  <span style="background: #ecfdf5; color: #0d7a57; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</span>
+                  <div style="font-size: 0.9rem; color: #475569;">Unggah bukti transfer dan konfirmasi donasi secara instan.</div>
+                </li>
+                <li style="display: flex; gap: 0.75rem;">
+                  <span style="background: #ecfdf5; color: #0d7a57; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">4</span>
+                  <div style="font-size: 0.9rem; color: #475569;">Terima kwitansi resmi digital via WhatsApp dan pantau transparansinya secara publik.</div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+         VIEW: 💳 PEMBAYARAN
+         ----------------------------------------------------------------------- -->
+    <section class="app-view" id="view-pembayaran" style="display: none; padding-top: 2rem;">
+      <div class="container">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <span class="badge badge-primary" style="margin-bottom: 0.5rem;">Instruksi Pembayaran Donasi</span>
+          <h1 style="font-size: 2.4rem; color: #064e3b;">Metode Pembayaran</h1>
+          <p style="color: #64748b; max-width: 600px; margin: 0.5rem auto 0;">Silakan transfer sesuai nominal yang telah ditentukan ke rekening resmi yayasan atau scan QRIS di bawah ini.</p>
+        </div>
+
+        <div class="donation-grid">
+          <!-- Kolom Metode Transfer -->
+          <div>
+            <!-- Ringkasan Donasi Yang Dipilih -->
+            <div class="card" style="background: #ecfdf5; border-color: #a7f3d0; margin-bottom: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 0.85rem; color: #047857; font-weight: 600;">Nominal Donasi Anda:</div>
+                  <div style="font-size: 1.8rem; font-weight: 900; color: #064e3b;" id="payment-display-nominal">Rp 100.000</div>
+                  <div style="font-size: 0.85rem; color: #047857;">Donatur: <strong id="payment-display-nama">Hamba Allah</strong> &bull; <span id="payment-display-program">Pengadaan Armada</span></div>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="window.app.navigateTo('donasi')">
+                  <i class="fa-solid fa-pen"></i> Ubah
+                </button>
+              </div>
+            </div>
+
+            <!-- Rekening Bank Resmi -->
+            <h4 style="margin-bottom: 1rem; color: #064e3b;"><i class="fa-solid fa-building-columns"></i> Transfer Rekening Bank Resmi:</h4>
+
+            <!-- Bank BSI -->
+            <div class="bank-card">
+              <div class="bank-info">
+                <h5>Bank Syariah Indonesia (BSI)</h5>
+                <p>a.n. YAYASAN IMAM SYAFII BREBES</p>
+                <div class="bank-acc-number" id="text-rek-bsi">7123456789</div>
+              </div>
+              <button class="btn-copy" data-copy="7123456789">
+                <i class="fa-regular fa-copy"></i> Salin Rekening
+              </button>
+            </div>
+
+            <!-- Bank Muamalat -->
+            <div class="bank-card">
+              <div class="bank-info">
+                <h5>Bank Muamalat</h5>
+                <p>a.n. Ponpes Imam Syafi'i Brebes</p>
+                <div class="bank-acc-number" id="text-rek-muamalat">5010099888</div>
+              </div>
+              <button class="btn-copy" data-copy="5010099888">
+                <i class="fa-regular fa-copy"></i> Salin Rekening
+              </button>
+            </div>
+
+            <!-- QRIS Card -->
+            <div class="qris-card" style="margin-top: 1.5rem;">
+              <h4 style="color: #064e3b; margin-bottom: 0.5rem;"><i class="fa-solid fa-qrcode"></i> Scan QRIS Semua Bank & Dompet Digital</h4>
+              <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Mendukung BCA Mobile, Livin Mandiri, BRImo, BSI Mobile, GoPay, OVO, ShopeePay, Dana, LinkAja.</p>
+              
+              <div class="qris-img-container">
+                <!-- Vector QR code placeholder -->
+                <svg viewBox="0 0 100 100" width="100%" height="100%">
+                  <rect width="100" height="100" fill="#ffffff" />
+                  <!-- QR Corner Markers -->
+                  <rect x="10" y="10" width="24" height="24" fill="#0d7a57" />
+                  <rect x="14" y="14" width="16" height="16" fill="#ffffff" />
+                  <rect x="18" y="18" width="8" height="8" fill="#0d7a57" />
+
+                  <rect x="66" y="10" width="24" height="24" fill="#0d7a57" />
+                  <rect x="70" y="14" width="16" height="16" fill="#ffffff" />
+                  <rect x="74" y="18" width="8" height="8" fill="#0d7a57" />
+
+                  <rect x="10" y="66" width="24" height="24" fill="#0d7a57" />
+                  <rect x="14" y="70" width="16" height="16" fill="#ffffff" />
+                  <rect x="18" y="74" width="8" height="8" fill="#0d7a57" />
+
+                  <!-- Pattern Blocks -->
+                  <rect x="42" y="12" width="6" height="6" fill="#0d7a57" />
+                  <rect x="52" y="18" width="6" height="6" fill="#0d7a57" />
+                  <rect x="42" y="28" width="8" height="8" fill="#0d7a57" />
+                  <rect x="38" y="45" width="24" height="10" rx="3" fill="#d97706" />
+                  <text x="50" y="52" font-size="5" font-weight="bold" fill="#ffffff" text-anchor="middle">MAISYA</text>
+
+                  <rect x="15" y="45" width="8" height="8" fill="#0d7a57" />
+                  <rect x="72" y="45" width="8" height="8" fill="#0d7a57" />
+                  <rect x="45" y="68" width="10" height="10" fill="#0d7a57" />
+                  <rect x="65" y="70" width="8" height="8" fill="#0d7a57" />
+                  <rect x="78" y="80" width="10" height="8" fill="#0d7a57" />
+                </svg>
+              </div>
+              <span class="badge badge-success">NMID: ID102026IMAMSYAFII</span>
+            </div>
+          </div>
+
+          <!-- Kolom Konfirmasi Bukti Transfer -->
+          <div>
+            <div class="card" style="box-shadow: var(--shadow-md);">
+              <h3 style="margin-bottom: 1rem; color: #064e3b;"><i class="fa-solid fa-file-arrow-up text-primary"></i> Konfirmasi Pembayaran Donasi</h3>
+              <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">
+                Setelah melakukan transfer, silakan upload bukti struk transfer atau screenshot m-banking di bawah ini agar dana Anda segera diverifikasi oleh tim keuangan kami.
+              </p>
+
+              <form id="form-konfirmasi-donasi">
+                <div class="form-group">
+                  <label class="form-label">Metode Pembayaran Yang Digunakan:</label>
+                  <select id="select-metode-bayar" class="form-select">
+                    <option value="BSI Transfer">Transfer Bank BSI</option>
+                    <option value="Bank Muamalat">Transfer Bank Muamalat</option>
+                    <option value="QRIS">QRIS (GoPay/OVO/Dana/BCA/dll)</option>
+                    <option value="Tunai Langsung">Tunai Langsung di Kantor Pesantren</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Upload Bukti Transfer / Nota:</label>
+                  <input type="file" id="input-bukti-file" class="form-input" accept="image/*">
+                  <div class="form-helper">Format: JPG, PNG, atau screenshot HP (Maksimal 5MB).</div>
+                </div>
+
+                <!-- Pratinjau Foto Bukti -->
+                <div id="preview-bukti-container" style="display: none; margin-bottom: 1.5rem; text-align: center;">
+                  <div style="font-size: 0.85rem; font-weight: 600; color: #047857; margin-bottom: 0.5rem;">Pratinjau Bukti:</div>
+                  <img id="img-preview-bukti" src="" alt="Bukti Transfer" style="max-height: 220px; border-radius: 8px; border: 2px dashed #0d7a57; max-width: 100%;">
+                </div>
+
+                <button type="submit" id="btn-submit-konfirmasi" class="btn btn-gold btn-block" style="font-size: 1.05rem; padding: 0.9rem;">
+                  <i class="fa-solid fa-paper-plane"></i> Kirim Konfirmasi Donasi
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+         VIEW: 📊 PROGRESS DONASI
+         ----------------------------------------------------------------------- -->
+    <section class="app-view" id="view-progress" style="display: none; padding-top: 2rem;">
+      <div class="container">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+          <span class="badge badge-primary" style="margin-bottom: 0.5rem;">Real-time Campaign Progress</span>
+          <h1 style="font-size: 2.5rem; color: #064e3b;">Progress Donasi Ambulan</h1>
+          <p style="color: #64748b; max-width: 600px; margin: 0.5rem auto 0;">Pantau capaian donasi pengadaan dan operasional armada secara transparan dan terbuka.</p>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-header">
+            <div>
+              <div style="font-size: 0.9rem; font-weight: 600; color: #64748b;">Total Donasi Terverifikasi:</div>
+              <div class="progress-amount-collected" id="progress-terkumpul">Rp 44.500.000</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="progress-target">Target Dana: <strong id="progress-target" style="color: #064e3b;">Rp 250.000.000</strong></div>
+              <div style="font-size: 1.4rem; font-weight: 800; color: #d97706;" id="progress-persen">18%</div>
+            </div>
+          </div>
+
+          <!-- Progress Bar Fill -->
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progress-bar-fill" style="width: 18%;"></div>
+          </div>
+
+          <!-- 4 Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">Sisa Kebutuhan</div>
+              <div class="stat-value" id="progress-sisa" style="color: #ef4444;">Rp 205.500.000</div>
+            </div>
+            <div class="stat-item" style="border-left-color: #0284c7;">
+              <div class="stat-label">Total Donatur Terdaftar</div>
+              <div class="stat-value" id="progress-donatur">5 Donatur</div>
+            </div>
+            <div class="stat-item" style="border-left-color: #10b981;">
+              <div class="stat-label">Dana Operasional Tersedia</div>
+              <div class="stat-value" id="transparansi-saldo-kas" style="color: #10b981;">Rp 42.850.000</div>
+            </div>
+            <div class="stat-item" style="border-left-color: #d97706;">
+              <div class="stat-label">Pengeluaran Terealisasi</div>
+              <div class="stat-value" id="transparansi-total-pengeluaran" style="color: #d97706;">Rp 1.650.000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Milestones Section -->
+        <div class="card" style="margin-bottom: 3rem;">
+          <h3 style="color: #064e3b; margin-bottom: 1.5rem;"><i class="fa-solid fa-flag-checkered text-primary"></i> Tahapan Realisasi Program (Milestones)</h3>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
+            <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border-top: 3px solid #10b981;">
+              <span class="badge badge-success" style="margin-bottom: 0.5rem;">Fase 1: Berjalan</span>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Pengumpulan Dana Awal</h4>
+              <p style="font-size: 0.85rem; color: #64748b;">Target: Rp 50.000.000 untuk penguncian unit mobil dan booking karoseri medis.</p>
+            </div>
+
+            <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border-top: 3px solid #d97706;">
+              <span class="badge badge-warning" style="margin-bottom: 0.5rem;">Fase 2: Menunggu</span>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Pengerjaan Karoseri Medis</h4>
+              <p style="font-size: 0.85rem; color: #64748b;">Pemasangan instalasi oksigen central, sirene, lantai steril, dan roll-in stretcher.</p>
+            </div>
+
+            <div style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border-top: 3px solid #64748b;">
+              <span class="badge" style="background: #e2e8f0; color: #475569; margin-bottom: 0.5rem;">Fase 3: Peluncuran</span>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Operasional Siaga 24 Jam</h4>
+              <p style="font-size: 0.85rem; color: #64748b;">Armada resmi diresmikan dan mulai beroperasi penuh melayani santri dan dhuafa.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+         VIEW: 📋 TRANSPARANSI
+         ----------------------------------------------------------------------- -->
+    <section class="app-view" id="view-transparansi" style="display: none; padding-top: 2rem;">
+      <div class="container">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+          <span class="badge badge-success" style="margin-bottom: 0.5rem;">Akuntabel & Amanah</span>
+          <h1 style="font-size: 2.5rem; color: #064e3b;">Laporan Transparansi Dana</h1>
+          <p style="color: #64748b; max-width: 650px; margin: 0.5rem auto 0;">Seluruh dana donasi masuk dan biaya pengeluaran operasional ambulan dicatat secara terbuka dan dapat diakses siapa saja.</p>
+        </div>
+
+        <!-- Tabel Donasi Masuk Terverifikasi -->
+        <div class="card" style="margin-bottom: 2.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="color: #064e3b;"><i class="fa-solid fa-arrow-down text-primary"></i> Daftar Donasi Masuk (Terverifikasi)</h3>
+            <span class="badge badge-success">Terbuka Untuk Publik</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Tanggal</th>
+                  <th>Nama Donatur</th>
+                  <th>Nominal</th>
+                  <th>Peruntukan & Doa</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-donasi">
+                <!-- Diisi via public.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabel Pengeluaran Operasional -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="color: #b91c1c;"><i class="fa-solid fa-arrow-up text-danger"></i> Daftar Pengeluaran Operasional Ambulan</h3>
+            <span class="badge badge-warning">Audit Kas Rutin</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Tanggal</th>
+                  <th>Kategori</th>
+                  <th>Keterangan Pengeluaran</th>
+                  <th>Nominal</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-pengeluaran">
+                <!-- Diisi via public.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+         VIEW: 📞 KONTAK & LAYANAN DARURAT
+         ----------------------------------------------------------------------- -->
+    <section class="app-view" id="view-kontak" style="display: none; padding-top: 2rem;">
+      <div class="container">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+          <span class="badge badge-danger" style="margin-bottom: 0.5rem;">Siaga 24 Jam Nonstop</span>
+          <h1 style="font-size: 2.5rem; color: #064e3b;">Kontak & Layanan Darurat</h1>
+          <p style="color: #64748b; max-width: 600px; margin: 0.5rem auto 0;">Hubungi kami kapan saja santri atau masyarakat sekitar membutuhkan transportasi medis gawat darurat.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+          <!-- Kartu Kontak -->
+          <div>
+            <div class="card" style="margin-bottom: 1.5rem; border-left: 5px solid #ef4444;">
+              <h3 style="color: #b91c1c; margin-bottom: 0.5rem;"><i class="fa-solid fa-phone-volume"></i> Hotline Darurat Ambulan</h3>
+              <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">Siaga panggilan 24 jam untuk rujukan medis darurat santri & dhuafa.</p>
+              <div style="font-size: 1.8rem; font-weight: 900; color: #1e293b; margin-bottom: 1rem;" id="text-hotline">0812-3456-7890</div>
+              <div style="display: flex; gap: 0.75rem;">
+                <a href="tel:081234567890" class="btn btn-danger" style="flex: 1;">
+                  <i class="fa-solid fa-phone"></i> Telepon Sekarang
+                </a>
+                <a href="https://wa.me/6281234567890?text=Assalamu'alaikum%20saya%20butuh%20ambulan%20darurat" target="_blank" class="btn btn-primary" style="flex: 1;">
+                  <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp
+                </a>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-location-dot text-primary"></i> Alamat Posko Ambulan</h3>
+              <p style="color: #1e293b; font-weight: 600; line-height: 1.6; margin-bottom: 1rem;" id="text-alamat-ponpes">
+                Kompleks Pondok Pesantren Imam Syafi'i Brebes<br>
+                Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah 52253
+              </p>
+              <a href="https://maps.google.com/?q=Pondok+Pesantren+Imam+Syafii+Brebes" target="_blank" class="btn btn-outline btn-block">
+                <i class="fa-solid fa-map-location-dot"></i> Buka Rute Google Maps
+              </a>
+            </div>
+          </div>
+
+          <!-- Permohonan Panggilan Cepat -->
+          <div>
+            <div class="card">
+              <h3 style="color: #064e3b; margin-bottom: 0.5rem;"><i class="fa-solid fa-truck-medical text-primary"></i> Permohonan Layanan Ambulan</h3>
+              <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">Isi formulir singkat ini jika Anda memerlukan armada ambulan untuk pasien darurat.</p>
+
+              <form id="form-permohonan-ambulan">
+                <div class="form-group">
+                  <label class="form-label">Nama Pemohon:</label>
+                  <input type="text" id="amb-pemohon" class="form-input" placeholder="Nama Anda" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Nomor WhatsApp Aktif:</label>
+                  <input type="tel" id="amb-wa" class="form-input" placeholder="08xxxxxxxxxx" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                  <div class="form-group">
+                    <label class="form-label">Nama Pasien:</label>
+                    <input type="text" id="amb-pasien" class="form-input" placeholder="Nama pasien" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Kategori Pasien:</label>
+                    <select id="amb-kategori" class="form-select">
+                      <option value="Santri">Santri Maisya</option>
+                      <option value="Asatidz/Karyawan">Asatidz / Karyawan</option>
+                      <option value="Dhuafa Warga">Dhuafa / Warga Sekitar</option>
+                      <option value="Layanan Jenazah">Layanan Jenazah</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Alamat Penjemputan:</label>
+                  <input type="text" id="amb-alamat" class="form-input" placeholder="Alamat rumah / asrama santri" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Tujuan Faskes / Rumah Sakit:</label>
+                  <input type="text" id="amb-tujuan" class="form-input" placeholder="Contoh: RSUD Brebes / RSI Harapan Anda" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Keluhan Singkat Pasien:</label>
+                  <textarea id="amb-catatan" class="form-textarea" rows="2" placeholder="Contoh: Sesak napas butuh oksigen segera..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-emergency btn-block" style="padding: 0.85rem;">
+                  <i class="fa-solid fa-paper-plane"></i> Kirim Permohonan Ambulan Sekarang
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================================
+       ADMIN PORTAL WRAPPER (Ditampilkan jika View = admin-*)
+       ========================================================================= -->
+  <div class="admin-wrapper" id="admin-wrapper" style="display: none;">
+    <!-- Sidebar Admin -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <img src="assets/logo.svg" alt="Admin" style="width: 38px; height: 38px; border-radius: 8px;">
+        <div>
+          <div style="font-weight: 800; font-size: 0.95rem; color: #ffffff;">ADMIN AMBULAN</div>
+          <div style="font-size: 0.75rem; color: #10b981;" id="admin-profile-name">Ustadz Admin</div>
+        </div>
+      </div>
+
+      <div class="admin-menu-heading">Menu Utama</div>
+      <a class="admin-nav-item active" data-view="admin-dashboard"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a class="admin-nav-item" data-view="admin-donatur"><i class="fa-solid fa-users"></i> Data Donatur</a>
+      <a class="admin-nav-item" data-view="admin-donasi"><i class="fa-solid fa-hand-holding-dollar"></i> Donasi Masuk</a>
+      <a class="admin-nav-item" data-view="admin-pengeluaran"><i class="fa-solid fa-receipt"></i> Pengeluaran</a>
+      <a class="admin-nav-item" data-view="admin-saldo"><i class="fa-solid fa-wallet"></i> Saldo Kas</a>
+      <a class="admin-nav-item" data-view="admin-laporan"><i class="fa-solid fa-file-invoice"></i> Laporan</a>
+      <a class="admin-nav-item" data-view="admin-bukti"><i class="fa-solid fa-images"></i> Bukti Transaksi</a>
+
+      <div class="admin-menu-heading">Sistem & Pengaturan</div>
+      <a class="admin-nav-item" data-view="admin-users"><i class="fa-solid fa-user-shield"></i> Admin/User</a>
+      <a class="admin-nav-item" data-view="admin-audit"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</a>
+      <a class="admin-nav-item" data-view="admin-pengaturan"><i class="fa-solid fa-sliders"></i> Pengaturan</a>
+
+      <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 0.5rem;">
+        <button class="btn btn-sm btn-outline" style="color: #ffffff; border-color: rgba(255,255,255,0.2);" id="btn-admin-to-public">
+          <i class="fa-solid fa-globe"></i> Mode Publik
+        </button>
+        <button class="btn btn-sm btn-danger" id="btn-admin-logout">
+          <i class="fa-solid fa-right-from-bracket"></i> Keluar (Logout)
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Admin -->
+    <section class="admin-main">
+
+      <!-- 1. ADMIN: DASHBOARD -->
+      <div class="app-view" id="view-admin-dashboard">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Dashboard Pengelolaan Ambulan</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Ringkasan keuangan, verifikasi donasi masuk, dan aktivitas armada siaga.</p>
+          </div>
+          <span class="badge badge-success" id="admin-profile-role">SUPERADMIN</span>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="admin-kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-title">Saldo Kas Ambulan</span>
+            <div class="kpi-value" id="kpi-saldo-kas" style="color: #0d7a57;">Rp 42.850.000</div>
+            <div class="kpi-sub">Total kas tersedia di bank & tunai</div>
+          </div>
+          <div class="kpi-card kpi-gold">
+            <span class="kpi-title">Donasi Terverifikasi</span>
+            <div class="kpi-value" id="kpi-donasi-masuk">Rp 44.500.000</div>
+            <div class="kpi-sub">Sah masuk ke rekening pesantren</div>
+          </div>
+          <div class="kpi-card kpi-danger">
+            <span class="kpi-title">Menunggu Verifikasi</span>
+            <div class="kpi-value" id="kpi-donasi-pending" style="color: #ef4444; font-size: 1.35rem;">Rp 3.500.000 (2 pending)</div>
+            <div class="kpi-sub">Segera periksa bukti transfer</div>
+          </div>
+          <div class="kpi-card kpi-info">
+            <span class="kpi-title">Total Pengeluaran</span>
+            <div class="kpi-value" id="kpi-pengeluaran">Rp 1.650.000</div>
+            <div class="kpi-sub">BBM, servis mesin, oksigen, dll.</div>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Total Donatur</span>
+            <div class="kpi-value" id="kpi-total-donatur">5 Donatur</div>
+            <div class="kpi-sub">Tercatat dalam basis data</div>
+          </div>
+        </div>
+
+        <!-- Antrean Cepat Verifikasi Donasi -->
+        <div class="card" style="margin-bottom: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="color: #064e3b;"><i class="fa-solid fa-clock-rotate-left text-warning"></i> Antrean Verifikasi Donasi Masuk</h3>
+            <button class="btn btn-sm btn-outline" onclick="window.app.navigateTo('admin-donasi')">Lihat Semua Donasi</button>
+          </div>
+          <div id="dashboard-quick-pending">
+            <!-- Diisi secara dinamis -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. ADMIN: DATA DONATUR -->
+      <div class="app-view" id="view-admin-donatur" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Data Donatur Ambulan</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Daftar dermawan dan donatur setia Pondok Pesantren Imam Syafi'i Brebes.</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.adminPortal.exportCsv('donasi')">
+            <i class="fa-solid fa-file-csv"></i> Export CSV
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Nama Donatur</th>
+                  <th>WhatsApp</th>
+                  <th>Alamat/Asal</th>
+                  <th>Total Kontribusi</th>
+                  <th>Frekuensi</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-admin-donatur">
+                <!-- Diisi via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. ADMIN: DONASI MASUK & VERIFIKASI -->
+      <div class="app-view" id="view-admin-donasi" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Manajemen Donasi Masuk</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Periksa bukti transfer, verifikasi donasi, dan kirim kwitansi WhatsApp otomatis.</p>
+          </div>
+        </div>
+
+        <!-- Filter and Search Toolbar -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1rem 1.5rem;">
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-sm btn-outline filter-donasi-btn active" data-status="all">Semua</button>
+              <button class="btn btn-sm btn-outline filter-donasi-btn" data-status="Pending">Menunggu Verifikasi</button>
+              <button class="btn btn-sm btn-outline filter-donasi-btn" data-status="Verified">Terverifikasi</button>
+              <button class="btn btn-sm btn-outline filter-donasi-btn" data-status="Rejected">Ditolak</button>
+            </div>
+            <div style="flex: 1; max-width: 320px;">
+              <input type="text" id="search-donasi-input" class="form-input" placeholder="Cari nama, ID, no WA..." style="padding: 0.45rem 0.85rem; font-size: 0.9rem;">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>ID Donasi</th>
+                  <th>Tanggal</th>
+                  <th>Nama Donatur</th>
+                  <th>Nominal</th>
+                  <th>Metode & Program</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-admin-donasi">
+                <!-- Diisi via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. ADMIN: PENGELUARAN -->
+      <div class="app-view" id="view-admin-pengeluaran" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Pengeluaran Operasional Ambulan</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Pencatatan biaya bahan bakar, servis berkala, pengisian oksigen medis, dan insentif.</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.app.openModal('modal-tambah-pengeluaran')">
+            <i class="fa-solid fa-plus"></i> Catat Pengeluaran Baru
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tanggal</th>
+                  <th>Kategori</th>
+                  <th>Deskripsi Pengeluaran</th>
+                  <th>Petugas (PIC)</th>
+                  <th>Nominal</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-admin-pengeluaran">
+                <!-- Diisi via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. ADMIN: SALDO KAS -->
+      <div class="app-view" id="view-admin-saldo" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Buku Arus Kas & Saldo</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Rekonsiliasi penerimaan donasi versus pengeluaran operasional ambulan.</p>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 2rem;">
+          <div class="stat-item" style="border-left-color: #10b981;">
+            <div class="stat-label">Total Pemasukan Sah</div>
+            <div class="stat-value" id="saldo-total-in" style="color: #10b981;">Rp 44.500.000</div>
+          </div>
+          <div class="stat-item" style="border-left-color: #ef4444;">
+            <div class="stat-label">Total Pengeluaran</div>
+            <div class="stat-value" id="saldo-total-out" style="color: #ef4444;">Rp 1.650.000</div>
+          </div>
+          <div class="stat-item" style="border-left-color: #0d7a57;">
+            <div class="stat-label">Sisa Saldo Kas Bersih</div>
+            <div class="stat-value" id="saldo-sisa-kas" style="color: #0d7a57;">Rp 42.850.000</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom: 1rem; color: #064e3b;">Mutasi Buku Kas (Cash Flow Ledger)</h3>
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Jenis Mutasi</th>
+                  <th>Uraian Transaksi</th>
+                  <th>Nominal</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-mutasi-kas">
+                <!-- Diisi via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. ADMIN: LAPORAN -->
+      <div class="app-view" id="view-admin-laporan" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Laporan Keuangan & Cetak</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Cetak laporan pertanggungjawaban donasi & operasional ber-Kop Surat resmi.</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.adminPortal.printLaporan()">
+            <i class="fa-solid fa-print"></i> Cetak Laporan (Print / PDF)
+          </button>
+        </div>
+
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: #064e3b; margin-bottom: 1rem;">Ringkasan Keuangan Periode Berjalan</h3>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+            <div style="background: #f0fdf4; padding: 1.5rem; border-radius: 12px;">
+              <div style="font-size: 0.85rem; color: #16a34a; font-weight: 700;">TOTAL PENERIMAAN</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: #064e3b;" id="lap-total-masuk">Rp 44.500.000</div>
+            </div>
+            <div style="background: #fef2f2; padding: 1.5rem; border-radius: 12px;">
+              <div style="font-size: 0.85rem; color: #dc2626; font-weight: 700;">TOTAL PENGELUARAN</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: #991b1b;" id="lap-total-keluar">Rp 1.650.000</div>
+            </div>
+            <div style="background: #ecfdf5; padding: 1.5rem; border-radius: 12px;">
+              <div style="font-size: 0.85rem; color: #0d7a57; font-weight: 700;">SALDO KAS AKHIR</div>
+              <div style="font-size: 1.8rem; font-weight: 900; color: #0d7a57;" id="lap-saldo-akhir">Rp 42.850.000</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. ADMIN: BUKTI TRANSAKSI (GALERI) -->
+      <div class="app-view" id="view-admin-bukti" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Galeri Arsip Bukti Transaksi</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Seluruh foto bukti transfer donatur dan nota pengeluaran operasional.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem;" id="gallery-bukti-transaksi">
+          <!-- Diisi via admin.js -->
+        </div>
+      </div>
+
+      <!-- 8. ADMIN: ADMIN/USER MANAGEMENT -->
+      <div class="app-view" id="view-admin-users" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Manajemen Petugas & Driver</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Kelola hak akses operator donasi, verifikator keuangan, dan driver armada.</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.app.openModal('modal-tambah-user')">
+            <i class="fa-solid fa-user-plus"></i> Tambah User Baru
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Nama Lengkap</th>
+                  <th>Peran (Role)</th>
+                  <th>Nomor HP</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-admin-users">
+                <!-- Diisi via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. ADMIN: AUDIT LOG -->
+      <div class="app-view" id="view-admin-audit" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Catatan Jejak Audit (Audit Log)</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Riwayat kronologis seluruh aktivitas, verifikasi donasi, pengeluaran, dan login.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>Waktu</th>
+                  <th>Pengguna</th>
+                  <th>Tindakan (Action)</th>
+                  <th>Rincian Aktivitas</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-audit-log">
+                <!-- Diisi via admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. ADMIN: PENGATURAN -->
+      <div class="app-view" id="view-admin-pengaturan" style="display: none;">
+        <div class="admin-header">
+          <div>
+            <h2 style="font-size: 1.5rem; color: #064e3b;">Pengaturan Sistem & Database</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Konfigurasi Google Apps Script, rekening bank, target donasi, dan kontak.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <form id="form-admin-settings">
+            <h4 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-cloud"></i> Integrasi Google Spreadsheet & Apps Script</h4>
+            
+            <div class="form-group">
+              <label class="form-label">URL Web App Google Apps Script (/exec):</label>
+              <input type="url" id="setting-apps-script-url" class="form-input" placeholder="https://script.google.com/macros/s/AKfycby.../exec">
+              <div class="form-helper">
+                Dapatkan dari menu <strong>Deploy -> New Deployment -> Web app</strong> di Google Apps Script editor.
+              </div>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem;">
+              <input type="checkbox" id="setting-online-mode-toggle" style="width: 20px; height: 20px; accent-color: #0d7a57;">
+              <label for="setting-online-mode-toggle" style="font-size: 0.9rem; font-weight: 700; color: #1e293b; cursor: pointer;">
+                Aktifkan Mode Online (Sinkronisasi Langsung ke Google Spreadsheet)
+              </label>
+            </div>
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
+
+            <h4 style="color: #064e3b; margin-bottom: 1rem;"><i class="fa-solid fa-bullseye"></i> Target & Info Rekening Donasi</h4>
+
+            <div class="form-group">
+              <label class="form-label">Target Donasi (Rp):</label>
+              <input type="number" id="setting-target-donasi" class="form-input" value="250000000">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Info Rekening BSI:</label>
+                <input type="text" id="setting-rek-bsi" class="form-input" value="7123456789 a.n. YAYASAN IMAM SYAFII BREBES">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Info Rekening Muamalat:</label>
+                <input type="text" id="setting-rek-muamalat" class="form-input" value="5010099888 a.n. Ponpes Imam Syafi'i">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Hotline Darurat Ambulan:</label>
+                <input type="text" id="setting-hotline" class="form-input" value="0812-3456-7890">
+              </div>
+              <div class="form-group">
+                <label class="form-label">WhatsApp Konfirmasi:</label>
+                <input type="text" id="setting-wa-konfirmasi" class="form-input" value="6281234567890">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Alamat Pesantren:</label>
+              <textarea id="setting-alamat" class="form-textarea" rows="2">Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah 52253</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="padding: 0.85rem 1.5rem;">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- =========================================================================
+       MODALS
+       ========================================================================= -->
+
+  <!-- Modal: Login Admin -->
+  <div class="modal-backdrop" id="modal-login-admin">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-lock text-primary"></i> Masuk ke Portal Admin</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="form-login-admin">
+        <div class="modal-body">
+          <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.25rem;">
+            Silakan masukkan kredensial akun pengelola Pondok Pesantren Imam Syafi'i Brebes.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Username:</label>
+            <input type="text" id="login-username" class="form-input" placeholder="admin" value="admin" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kata Sandi (Password):</label>
+            <input type="password" id="login-password" class="form-input" placeholder="admin123" value="admin123" required>
+            <div class="form-helper">Akun bawaan demo: <strong>admin</strong> / sandi: <strong>admin123</strong></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="submit" class="btn btn-primary">Masuk ke Portal Admin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Verifikasi Donasi -->
+  <div class="modal-backdrop" id="modal-verifikasi-donasi">
+    <div class="modal-dialog" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-clipboard-check text-primary"></i> Periksa & Verifikasi Donasi</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem;">
+          <div>
+            <strong id="verify-modal-id" style="font-family: monospace;">DON-XXXX</strong>
+            <div style="font-size: 0.85rem; color: #64748b;">Peruntukan: <span id="verify-modal-program">-</span></div>
+          </div>
+          <div id="verify-modal-status-badge"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <div style="font-size: 0.8rem; color: #64748b;">Nama Donatur:</div>
+            <strong id="verify-modal-nama" style="font-size: 1.1rem; color: #064e3b;">-</strong>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #64748b;">Nomor WhatsApp:</div>
+            <strong id="verify-modal-wa">-</strong>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #64748b;">Nominal Donasi:</div>
+            <div style="font-size: 1.4rem; font-weight: 900; color: #0d7a57;" id="verify-modal-nominal">Rp 0</div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: #64748b;">Metode Pembayaran:</div>
+            <strong id="verify-modal-metode">-</strong>
+          </div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.8rem; color: #64748b;">Untaian Doa:</div>
+          <div id="verify-modal-doa" style="font-style: italic; color: #1e293b;">"-"</div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">Lampiran Bukti Transfer:</div>
+          <div style="height: 240px; background: #0f172a; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <img id="verify-modal-img" src="" alt="Bukti Transfer" style="max-height: 100%; max-width: 100%; object-fit: contain; cursor: pointer;" onclick="window.adminPortal.showImagePreview(this.src)">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="btn btn-danger" onclick="window.adminPortal.submitVerification('Rejected')">
+          <i class="fa-solid fa-xmark"></i> Tolak Donasi
+        </button>
+        <button class="btn btn-primary" onclick="window.adminPortal.submitVerification('Verified')">
+          <i class="fa-solid fa-check"></i> Verifikasi Sah & Masuk Saldo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Tambah Pengeluaran -->
+  <div class="modal-backdrop" id="modal-tambah-pengeluaran">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-plus text-primary"></i> Catat Pengeluaran Operasional</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="form-tambah-pengeluaran">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tanggal Pengeluaran:</label>
+            <input type="date" id="exp-tanggal" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kategori Pengeluaran:</label>
+            <select id="exp-kategori" class="form-select" required>
+              <option value="BBM">Bahan Bakar Minyak (BBM)</option>
+              <option value="Perawatan Armada">Perawatan & Servis Berkala Mesin</option>
+              <option value="Oksigen & Medis">Isi Ulang Oksigen & Perlengkapan Medis</option>
+              <option value="Sopir/Insentif">Insentif Driver / Petugas Medis</option>
+              <option value="Operasional Lainnya">Operasional Lainnya (Disinfektan, Parkir, Tol)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Deskripsi / Uraian:</label>
+            <input type="text" id="exp-deskripsi" class="form-input" placeholder="Contoh: Beli BBM Pertamax rujukan santri ke RSUD Brebes" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nominal (Rp):</label>
+            <input type="text" id="exp-nominal" class="form-input" placeholder="Contoh: 350.000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nama Petugas Penanggung Jawab (PIC):</label>
+            <input type="text" id="exp-pic" class="form-input" placeholder="Pak Slamet (Driver)">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Pengeluaran</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Tambah User -->
+  <div class="modal-backdrop" id="modal-tambah-user">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-user-plus text-primary"></i> Tambah Pengguna Baru</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="form-tambah-user">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Username:</label>
+            <input type="text" id="user-username" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password:</label>
+            <input type="password" id="user-password" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nama Lengkap:</label>
+            <input type="text" id="user-nama" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Peran (Role):</label>
+            <select id="user-role" class="form-select">
+              <option value="verifikator">Verifikator Keuangan</option>
+              <option value="driver">Driver Ambulan</option>
+              <option value="superadmin">Super Administrator</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nomor WhatsApp:</label>
+            <input type="tel" id="user-hp" class="form-input" placeholder="08xxxxxxxxxx">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Kwitansi Donasi Sukses (Public) -->
+  <div class="modal-backdrop" id="modal-kwitansi-sukses">
+    <div class="modal-dialog">
+      <div class="modal-header" style="background: #ecfdf5;">
+        <h3 class="modal-title" style="color: #064e3b;"><i class="fa-solid fa-circle-check text-success"></i> Konfirmasi Donasi Diterima!</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <div style="font-size: 3rem; color: #10b981; margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <h3 style="color: #064e3b; margin-bottom: 0.5rem;">Alhamdulillah, Terima Kasih!</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Bukti transfer dan data donasi Anda telah kami terima dan tercatat dalam sistem kami.
+        </p>
+
+        <div style="background: #f8fafc; border: 1px dashed #0d7a57; border-radius: 12px; padding: 1.25rem; text-align: left; margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.85rem;">ID Transaksi:</span>
+            <strong id="kwitansi-id" style="font-family: monospace;">-</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.85rem;">Nama Donatur:</span>
+            <strong id="kwitansi-nama">-</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.85rem;">Jumlah Donasi:</span>
+            <strong id="kwitansi-nominal" style="color: #0d7a57; font-size: 1.1rem;">-</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.85rem;">Metode:</span>
+            <span id="kwitansi-metode">-</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #64748b; font-size: 0.85rem;">Waktu:</span>
+            <span id="kwitansi-tanggal" style="font-size: 0.85rem;">-</span>
+          </div>
+        </div>
+
+        <p style="font-size: 0.85rem; color: #475569; font-style: italic;">
+          Semoga menjadi pemberat amal timbangan kebaikan di yaumil hisab kelak. Aamiin ya Rabbal 'Alamin.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-block modal-close">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Lightbox Preview Foto -->
+  <div class="modal-backdrop" id="modal-lightbox">
+    <div class="modal-dialog" style="max-width: 800px; background: transparent; box-shadow: none;">
+      <div style="position: relative; text-align: center;">
+        <button class="modal-close" style="position: absolute; right: 10px; top: 10px; background: #ffffff; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10;">&times;</button>
+        <img id="lightbox-img" src="" alt="Pratinjau Bukti" style="max-height: 85vh; max-width: 100%; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); object-fit: contain;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Permohonan Ambulan (Standalone Button Header) -->
+  <div class="modal-backdrop" id="modal-panggil-ambulan">
+    <div class="modal-dialog">
+      <div class="modal-header" style="background: #fef2f2;">
+        <h3 class="modal-title" style="color: #b91c1c;"><i class="fa-solid fa-truck-medical"></i> Panggilan Ambulan Darurat</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1.25rem;">
+          <strong style="color: #991b1b; display: block;">Layanan Siaga 24 Jam Nonstop!</strong>
+          <span style="font-size: 0.85rem; color: #7f1d1d;">Untuk santri sakit darurat, asatidz, dan warga dhuafa sekitar Pesantren Imam Syafi'i Brebes.</span>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
+          <a href="tel:081234567890" class="btn btn-danger" style="flex: 1; padding: 0.85rem;">
+            <i class="fa-solid fa-phone"></i> Hubungi Driver
+          </a>
+          <a href="https://wa.me/6281234567890?text=Assalamu'alaikum%20Ambulan%20Maisya,%20kami%20membutuhkan%20bantuan%20ambulan%20segera" target="_blank" class="btn btn-primary" style="flex: 1; padding: 0.85rem;">
+            <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp
+          </a>
+        </div>
+
+        <p style="font-size: 0.85rem; color: #64748b; text-align: center;">
+          Atau buka menu <strong><a href="#kontak" onclick="window.app.closeModal('modal-panggil-ambulan'); window.app.navigateTo('kontak');">Formulir Kontak Layanan Lengkap</a></strong>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PRINT TEMPLATE (Official Kop Surat Kwitansi & Laporan)
+       ========================================================================= -->
+  <div class="print-only" style="display: none; padding: 2rem; font-family: serif; color: #000000;">
+    <!-- Kop Surat -->
+    <div style="display: flex; align-items: center; justify-content: center; gap: 1.5rem; border-bottom: 3px double #000000; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+      <img src="assets/logo.svg" alt="Logo" style="width: 80px; height: 80px;">
+      <div style="text-align: center;">
+        <h2 style="font-size: 1.4rem; font-weight: bold; margin: 0; text-transform: uppercase;">YAYASAN IMAM SYAFII BREBES</h2>
+        <h3 style="font-size: 1.15rem; margin: 0; text-transform: uppercase;">PONDOK PESANTREN IMAM SYAFI'I</h3>
+        <div style="font-size: 0.85rem;">UNIT LAYANAN AMBULAN MEDIS & SOSIAL KEMANUSIAAN</div>
+        <div style="font-size: 0.8rem;">Jl. Raya Karangsari - Luwungragi, Kec. Bulakamba, Kab. Brebes, Jawa Tengah 52253 &bull; Hotline: 0812-3456-7890</div>
+      </div>
+    </div>
+
+    <!-- Judul Kwitansi -->
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <h3 style="text-decoration: underline; margin: 0; font-size: 1.25rem;">TANDA TERIMA DONASI RESMI</h3>
+      <div style="font-size: 0.9rem;">Nomor: <span id="print-kwitansi-no">DON-2026-XXXX</span></div>
+    </div>
+
+    <!-- Isi Kwitansi -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-size: 1.05rem;">
+      <tr>
+        <td style="width: 25%; padding: 0.5rem 0;">Telah terima dari</td>
+        <td style="width: 3%;">:</td>
+        <td style="font-weight: bold;" id="print-kwitansi-nama">H. Ahmad Syafii</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.5rem 0;">Sejumlah Uang</td>
+        <td>:</td>
+        <td style="font-weight: bold; font-style: italic; background: #f1f5f9; padding: 0.5rem;" id="print-kwitansi-terbilang">Lima Juta Rupiah</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.5rem 0;">Untuk Pembayaran</td>
+        <td>:</td>
+        <td id="print-kwitansi-untuk">Donasi Pengadaan Armada Ambulan Ponpes Imam Syafi'i Brebes</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.5rem 0;">Nominal Angka</td>
+        <td>:</td>
+        <td style="font-size: 1.3rem; font-weight: bold;" id="print-kwitansi-nominal">Rp 5.000.000</td>
+      </tr>
+    </table>
+
+    <!-- Tanda Tangan -->
+    <div style="display: flex; justify-content: space-between; margin-top: 3rem;">
+      <div style="text-align: center; width: 220px;">
+        <div>Mengetahui,</div>
+        <div style="font-size: 0.9rem;">Pimpinan Ponpes Imam Syafi'i</div>
+        <div style="height: 60px;"></div>
+        <div style="font-weight: bold; text-decoration: underline;">Ustadz Pembina</div>
+      </div>
+      <div style="text-align: center; width: 220px;">
+        <div>Brebes, <span id="print-kwitansi-tgl">03 Oktober 2026</span></div>
+        <div style="font-size: 0.9rem;">Petugas Verifikator Kasir</div>
+        <div style="height: 60px;"></div>
+        <div style="font-weight: bold; text-decoration: underline;">Bagian Keuangan Maisya</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MOBILE BOTTOM NAVIGATION
+       ========================================================================= -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <a class="bottom-nav-item active" data-view="beranda">
+      <i class="fa-solid fa-house"></i>
+      <span>Beranda</span>
+    </a>
+    <a class="bottom-nav-item" data-view="program">
+      <i class="fa-solid fa-ambulance"></i>
+      <span>Program</span>
+    </a>
+    <a class="bottom-nav-item" data-view="donasi">
+      <i class="fa-solid fa-heart" style="color: #ef4444;"></i>
+      <span>Donasi</span>
+    </a>
+    <a class="bottom-nav-item" data-view="transparansi">
+      <i class="fa-solid fa-clipboard-list"></i>
+      <span>Laporan</span>
+    </a>
+    <a class="bottom-nav-item" data-view="admin-portal">
+      <i class="fa-solid fa-user-lock"></i>
+      <span>Admin</span>
+    </a>
+  </nav>
+
+  <!-- Script Modules -->
+  <script src="js/api.js"></script>
+  <script src="js/public.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
