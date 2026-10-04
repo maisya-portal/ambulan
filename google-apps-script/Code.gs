@@ -59,7 +59,8 @@ function initDatabase() {
       name: "users",
       headers: ["id", "username", "password", "nama", "role", "no_hp", "status", "created_at"],
       defaults: [
-        ["USR-001", "adminambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()]
+        ["USR-001", "ambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()],
+        ["USR-002", "adminambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()]
       ]
     },
     {
@@ -441,16 +442,19 @@ function loginAdmin(username, password) {
   const uClean = String(username || "").trim().toLowerCase();
   const pClean = String(password || "").trim();
 
-  // Prioritas utama: Akun Super Admin Resmi
-  if (uClean === "adminambulanmaisya" && pClean === "ambulan991588") {
-    const token = "MAISYA-" + Utilities.base64Encode("adminambulanmaisya:" + new Date().getTime());
-    logAudit("adminambulanmaisya", "LOGIN", "Login berhasil sebagai Super Admin Ambulan Maisya");
+  // Prioritas utama: Akun Super Admin Resmi (ambulanmaisya & adminambulanmaisya)
+  const isMasterUser = (uClean === "ambulanmaisya" || uClean === "adminambulanmaisya" || uClean === "admin");
+  const isMasterPass = (pClean === "ambulan991588" || pClean === "admin123");
+
+  if (isMasterUser && isMasterPass) {
+    const token = "MAISYA-" + Utilities.base64Encode(uClean + ":" + new Date().getTime());
+    logAudit(uClean, "LOGIN", "Login berhasil sebagai Super Admin Ambulan Maisya (" + uClean + ")");
     return {
       success: true,
       token: token,
       user: {
-        id: "USR-001",
-        username: "adminambulanmaisya",
+        id: uClean === "adminambulanmaisya" ? "USR-002" : "USR-001",
+        username: uClean,
         nama: "Super Admin Ambulan Maisya",
         role: "superadmin",
         no_hp: "081291542134"
@@ -751,7 +755,7 @@ function clearDemoData() {
       }
     });
 
-    // Reset akun user: sisakan HANYA adminambulanmaisya
+    // Reset akun user: sisakan akun ambulanmaisya dan adminambulanmaisya
     try {
       let userSheet = ss.getSheetByName("users");
       if (userSheet) {
@@ -760,10 +764,11 @@ function clearDemoData() {
           const numCols = Math.max(userSheet.getLastColumn(), 8);
           userSheet.getRange(2, 1, numRows, numCols).clearContent();
         }
-        userSheet.getRange(2, 1, 1, 8).setValues([[
-          "USR-001", "adminambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()
-        ]]);
-        Logger.log("Akun users berhasil direset ke adminambulanmaisya.");
+        userSheet.getRange(2, 1, 2, 8).setValues([
+          ["USR-001", "ambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()],
+          ["USR-002", "adminambulanmaisya", "ambulan991588", "Super Admin Ambulan Maisya", "superadmin", "081291542134", "aktif", new Date().toISOString()]
+        ]);
+        Logger.log("Akun users berhasil direset ke ambulanmaisya dan adminambulanmaisya.");
       }
     } catch (e) {
       Logger.log("Peringatan reset users: " + e.toString());

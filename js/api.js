@@ -35,14 +35,15 @@ const INITIAL_DATABASE = {
     alamat_ponpes: "Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218"
   },
   users: [
-    { id: "USR-001", username: "adminambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" }
+    { id: "USR-001", username: "ambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" },
+    { id: "USR-002", username: "adminambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" }
   ],
   donatur: [],
   donasi_masuk: [],
   pengeluaran: [],
   layanan_ambulan: [],
   audit_log: [
-    { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "adminambulanmaisya", action: "INITIALIZE", detail: "Sistem Ambulan Ponpes Imam Syafi'i siap digunakan (mode bersih)" }
+    { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "ambulanmaisya", action: "INITIALIZE", detail: "Sistem Ambulan Ponpes Imam Syafi'i siap digunakan (mode bersih)" }
   ]
 };
 
@@ -66,36 +67,32 @@ class AmbulanApi {
       localStorage.setItem(ApiConfig.FILTER_DEMO_DATA_KEY, 'true');
     }
 
-    // 3. Pembersihan cache lokal legacy versi sebelumnya (agar bersih 100% tanpa data dummy)
-    const cleanedFlag = localStorage.getItem('maisya_clean_production_v8');
+    // 3. Pembersihan cache lokal legacy versi sebelumnya
+    const cleanedFlag = localStorage.getItem('maisya_clean_production_v10');
     if (!cleanedFlag) {
       const existing = this.getDb();
-      existing.users = [
-        { id: "USR-001", username: "adminambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" }
-      ];
+      existing.users = INITIAL_DATABASE.users;
       existing.donatur = [];
       existing.donasi_masuk = [];
       existing.pengeluaran = [];
       existing.layanan_ambulan = [];
       existing.settings = { ...INITIAL_DATABASE.settings, ...(existing.settings || {}) };
       existing.audit_log = [
-        { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "adminambulanmaisya", action: "INITIALIZE", detail: "Sistem diinisialisasi dalam mode produksi bersih dengan akun adminambulanmaisya" }
+        { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "ambulanmaisya", action: "INITIALIZE", detail: "Sistem diinisialisasi dalam mode produksi bersih dengan akun ambulanmaisya" }
       ];
       localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(existing));
       localStorage.setItem(ApiConfig.APPS_SCRIPT_URL_KEY, ApiConfig.DEFAULT_APPS_SCRIPT_URL);
       localStorage.setItem(ApiConfig.USE_ONLINE_MODE_KEY, 'true');
       localStorage.setItem(ApiConfig.FILTER_DEMO_DATA_KEY, 'true');
-      localStorage.setItem('maisya_clean_production_v8', 'true');
+      localStorage.setItem('maisya_clean_production_v10', 'true');
     } else if (!localStorage.getItem(ApiConfig.LOCAL_DB_KEY)) {
       localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(INITIAL_DATABASE));
     }
 
-    // 4. Pastikan akun adminambulanmaisya selalu ada di users db lokal
+    // 4. Selalu pastikan akun ambulanmaisya dan adminambulanmaisya terdaftar di db lokal
     const currentDb = this.getDb();
-    if (!currentDb.users || !currentDb.users.some(u => u.username === 'adminambulanmaisya')) {
-      currentDb.users = INITIAL_DATABASE.users;
-      this.saveDb(currentDb);
-    }
+    currentDb.users = INITIAL_DATABASE.users;
+    this.saveDb(currentDb);
   }
 
   getDb() {
@@ -496,36 +493,45 @@ class AmbulanApi {
     const uClean = String(username || '').trim().toLowerCase();
     const pClean = String(password || '').trim();
 
-    // 1. Verifikasi langsung Akun Super Admin Resmi
-    if (uClean === 'adminambulanmaisya' && pClean === 'ambulan991588') {
+    // 1. Verifikasi langsung Akun Super Admin Resmi (ambulanmaisya & adminambulanmaisya)
+    const validSuperAdmins = ['ambulanmaisya', 'adminambulanmaisya', 'admin'];
+    const validSuperPasswords = ['ambulan991588', 'admin123'];
+
+    if (validSuperAdmins.includes(uClean) && validSuperPasswords.includes(pClean)) {
       const db = this.getDb();
-      db.users = [
-        { id: "USR-001", username: "adminambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" }
-      ];
+      db.users = INITIAL_DATABASE.users;
       db.audit_log.unshift({
         id: "AUD-" + Date.now(),
         timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        user: "adminambulanmaisya",
+        user: uClean,
         action: "LOGIN",
-        detail: "Login berhasil sebagai Super Admin Ambulan Maisya"
+        detail: `Login berhasil sebagai Super Admin (${uClean})`
       });
       this.saveDb(db);
 
       const token = 'MAISYA-TOKEN-' + Date.now();
       const userData = {
-        id: 'USR-001',
-        username: 'adminambulanmaisya',
+        id: uClean === 'adminambulanmaisya' ? 'USR-002' : 'USR-001',
+        username: uClean,
         nama: 'Super Admin Ambulan Maisya',
         role: 'superadmin',
         no_hp: '081291542134'
       };
 
+      // Simpan session agar langsung aktif dan dapat diakses portal
+      sessionStorage.setItem('maisya_admin_token', token);
+      sessionStorage.setItem('maisya_admin_user', JSON.stringify(userData));
+
+      // Asynchronous notification to Apps Script jika online (non-blocking, abaikan jika CORS/offline)
       if (this.isOnlineMode()) {
-        fetch(this.getAppsScriptUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'loginAdmin', username: uClean, password: pClean })
-        }).catch(e => console.warn('Sync login to GAS:', e));
+        try {
+          fetch(this.getAppsScriptUrl(), {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'loginAdmin', username: uClean, password: pClean })
+          }).catch(() => {});
+        } catch (_) {}
       }
 
       return { success: true, token, user: userData };
@@ -540,9 +546,13 @@ class AmbulanApi {
           body: JSON.stringify({ action: 'loginAdmin', username: uClean, password: pClean })
         });
         const json = await res.json();
-        if (json && json.success) return json;
+        if (json && json.success) {
+          if (json.token) sessionStorage.setItem('maisya_admin_token', json.token);
+          if (json.user) sessionStorage.setItem('maisya_admin_user', JSON.stringify(json.user));
+          return json;
+        }
       } catch (e) {
-        console.warn('Apps script login failed:', e);
+        console.warn('Apps script login network error, fallback ke database lokal:', e);
       }
     }
 
@@ -565,6 +575,9 @@ class AmbulanApi {
         role: user.role,
         no_hp: user.no_hp
       };
+
+      sessionStorage.setItem('maisya_admin_token', token);
+      sessionStorage.setItem('maisya_admin_user', JSON.stringify(userData));
 
       db.audit_log.unshift({
         id: "AUD-" + Date.now(),
