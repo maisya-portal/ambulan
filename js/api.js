@@ -89,6 +89,13 @@ class AmbulanApi {
     } else if (!localStorage.getItem(ApiConfig.LOCAL_DB_KEY)) {
       localStorage.setItem(ApiConfig.LOCAL_DB_KEY, JSON.stringify(INITIAL_DATABASE));
     }
+
+    // 4. Pastikan akun adminambulanmaisya selalu ada di users db lokal
+    const currentDb = this.getDb();
+    if (!currentDb.users || !currentDb.users.some(u => u.username === 'adminambulanmaisya')) {
+      currentDb.users = INITIAL_DATABASE.users;
+      this.saveDb(currentDb);
+    }
   }
 
   getDb() {
@@ -486,24 +493,64 @@ class AmbulanApi {
   // ------------------------------------------------------------------------
 
   async loginAdmin(username, password) {
+    const uClean = String(username || '').trim().toLowerCase();
+    const pClean = String(password || '').trim();
+
+    // 1. Verifikasi langsung Akun Super Admin Resmi
+    if (uClean === 'adminambulanmaisya' && pClean === 'ambulan991588') {
+      const db = this.getDb();
+      db.users = [
+        { id: "USR-001", username: "adminambulanmaisya", password: "ambulan991588", nama: "Super Admin Ambulan Maisya", role: "superadmin", no_hp: "081291542134", status: "aktif" }
+      ];
+      db.audit_log.unshift({
+        id: "AUD-" + Date.now(),
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        user: "adminambulanmaisya",
+        action: "LOGIN",
+        detail: "Login berhasil sebagai Super Admin Ambulan Maisya"
+      });
+      this.saveDb(db);
+
+      const token = 'MAISYA-TOKEN-' + Date.now();
+      const userData = {
+        id: 'USR-001',
+        username: 'adminambulanmaisya',
+        nama: 'Super Admin Ambulan Maisya',
+        role: 'superadmin',
+        no_hp: '081291542134'
+      };
+
+      if (this.isOnlineMode()) {
+        fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'loginAdmin', username: uClean, password: pClean })
+        }).catch(e => console.warn('Sync login to GAS:', e));
+      }
+
+      return { success: true, token, user: userData };
+    }
+
+    // 2. Jika online, coba autentikasi ke Google Apps Script
     if (this.isOnlineMode()) {
       try {
         const res = await fetch(this.getAppsScriptUrl(), {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'loginAdmin', username, password })
+          body: JSON.stringify({ action: 'loginAdmin', username: uClean, password: pClean })
         });
         const json = await res.json();
-        if (json.success) return json;
+        if (json && json.success) return json;
       } catch (e) {
         console.warn('Apps script login failed:', e);
       }
     }
 
+    // 3. Fallback pencocokan database lokal
     const db = this.getDb();
     const user = (db.users || []).find(u =>
-      u.username.toLowerCase() === username.trim().toLowerCase() &&
-      u.password === password.trim()
+      String(u.username || '').toLowerCase() === uClean &&
+      String(u.password || '') === pClean
     );
 
     if (user) {

@@ -438,6 +438,26 @@ function submitLayananAmbulance(data) {
 }
 
 function loginAdmin(username, password) {
+  const uClean = String(username || "").trim().toLowerCase();
+  const pClean = String(password || "").trim();
+
+  // Prioritas utama: Akun Super Admin Resmi
+  if (uClean === "adminambulanmaisya" && pClean === "ambulan991588") {
+    const token = "MAISYA-" + Utilities.base64Encode("adminambulanmaisya:" + new Date().getTime());
+    logAudit("adminambulanmaisya", "LOGIN", "Login berhasil sebagai Super Admin Ambulan Maisya");
+    return {
+      success: true,
+      token: token,
+      user: {
+        id: "USR-001",
+        username: "adminambulanmaisya",
+        nama: "Super Admin Ambulan Maisya",
+        role: "superadmin",
+        no_hp: "081291542134"
+      }
+    };
+  }
+
   const ss = getSS();
   const userSheet = ss.getSheetByName("users");
   if (!userSheet) initDatabase();
@@ -445,7 +465,7 @@ function loginAdmin(username, password) {
   const rows = userSheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
     const u = rows[i];
-    if (String(u[1]).trim().toLowerCase() === String(username).trim().toLowerCase() && String(u[2]).trim() === String(password).trim()) {
+    if (String(u[1]).trim().toLowerCase() === uClean && String(u[2]).trim() === pClean) {
       if (u[6] !== "aktif") {
         return { success: false, message: "Akun nonaktif. Hubungi super administrator." };
       }
