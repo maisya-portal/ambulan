@@ -73,12 +73,75 @@ class AmbulanApp {
       });
     });
 
-    // Admin Sidebar Navigation
+    // Mobile Drawer Toggle & Backdrop Admin
+    const openAdminSidebar = () => {
+      const sidebar = document.getElementById('admin-sidebar');
+      const backdrop = document.getElementById('admin-sidebar-backdrop');
+      if (sidebar) sidebar.classList.add('open');
+      if (backdrop) backdrop.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeAdminSidebar = () => {
+      const sidebar = document.getElementById('admin-sidebar');
+      const backdrop = document.getElementById('admin-sidebar-backdrop');
+      if (sidebar) sidebar.classList.remove('open');
+      if (backdrop) backdrop.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    window.openAdminSidebar = openAdminSidebar;
+    window.closeAdminSidebar = closeAdminSidebar;
+
+    const btnOpenSidebar = document.getElementById('btn-open-admin-sidebar');
+    if (btnOpenSidebar) btnOpenSidebar.addEventListener('click', openAdminSidebar);
+
+    const btnFabToggle = document.getElementById('admin-fab-toggle');
+    if (btnFabToggle) btnFabToggle.addEventListener('click', openAdminSidebar);
+
+    const btnBottomMenu = document.getElementById('admin-bottom-nav-menu');
+    if (btnBottomMenu) btnBottomMenu.addEventListener('click', openAdminSidebar);
+
+    const btnCloseSidebar = document.getElementById('btn-close-admin-sidebar');
+    if (btnCloseSidebar) btnCloseSidebar.addEventListener('click', closeAdminSidebar);
+
+    const sidebarBackdrop = document.getElementById('admin-sidebar-backdrop');
+    if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeAdminSidebar);
+
+    const btnMobilePublic = document.getElementById('btn-admin-mobile-public');
+    if (btnMobilePublic) btnMobilePublic.addEventListener('click', () => {
+      closeAdminSidebar();
+      this.navigateTo('beranda');
+    });
+
+    const btnMobileLogout = document.getElementById('btn-admin-mobile-logout');
+    if (btnMobileLogout) btnMobileLogout.addEventListener('click', () => {
+      closeAdminSidebar();
+      this.handleLogout();
+    });
+
+    // Admin Sidebar Navigation (tutup sidebar otomatis setelah klik di mobile)
     document.querySelectorAll('.admin-nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         const target = item.getAttribute('data-view');
-        if (target) this.navigateTo(target);
+        if (target) {
+          closeAdminSidebar();
+          this.navigateTo(target);
+        }
+      });
+    });
+
+    // Admin Mobile Bottom Navigation
+    document.querySelectorAll('.admin-bottom-nav-item').forEach(item => {
+      if (item.id === 'admin-bottom-nav-menu') return;
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = item.getAttribute('data-view');
+        if (target) {
+          closeAdminSidebar();
+          this.navigateTo(target);
+        }
       });
     });
 
@@ -86,6 +149,7 @@ class AmbulanApp {
     const btnToPublic = document.getElementById('btn-admin-to-public');
     if (btnToPublic) {
       btnToPublic.addEventListener('click', () => {
+        closeAdminSidebar();
         this.navigateTo('beranda');
       });
     }
@@ -93,6 +157,7 @@ class AmbulanApp {
     const btnLogout = document.getElementById('btn-admin-logout');
     if (btnLogout) {
       btnLogout.addEventListener('click', () => {
+        closeAdminSidebar();
         this.handleLogout();
       });
     }
@@ -128,15 +193,38 @@ class AmbulanApp {
     const publicContainer = document.getElementById('public-container');
     const adminWrapper = document.getElementById('admin-wrapper');
     const bottomNav = document.getElementById('bottom-nav');
+    const adminBottomNav = document.getElementById('admin-bottom-nav');
 
     if (isAdminTarget) {
+      document.body.classList.add('admin-mode');
       if (publicContainer) publicContainer.style.display = 'none';
       if (adminWrapper) adminWrapper.style.display = 'flex';
       if (bottomNav) bottomNav.style.display = 'none';
+      if (adminBottomNav && window.innerWidth <= 992) adminBottomNav.style.display = 'flex';
+
+      // Update mobile title di sticky topbar
+      const viewTitles = {
+        'admin-dashboard': 'Dashboard',
+        'admin-donatur': 'Data Donatur',
+        'admin-donasi': 'Donasi Masuk',
+        'admin-pengeluaran': 'Pengeluaran',
+        'admin-saldo': 'Saldo Kas',
+        'admin-laporan': 'Laporan',
+        'admin-bukti': 'Bukti Transaksi',
+        'admin-users': 'Admin / User',
+        'admin-audit': 'Audit Log',
+        'admin-pengaturan': 'Pengaturan'
+      };
+      const mobileTitle = document.getElementById('admin-mobile-view-name');
+      if (mobileTitle && viewTitles[viewName]) {
+        mobileTitle.innerText = viewTitles[viewName];
+      }
     } else {
+      document.body.classList.remove('admin-mode');
       if (publicContainer) publicContainer.style.display = 'block';
       if (adminWrapper) adminWrapper.style.display = 'none';
-      if (bottomNav) bottomNav.style.display = 'flex';
+      if (bottomNav && window.innerWidth <= 992) bottomNav.style.display = 'flex';
+      if (adminBottomNav) adminBottomNav.style.display = 'none';
     }
 
     // Update active state di menu
@@ -157,8 +245,14 @@ class AmbulanApp {
       l.classList.toggle('active', l.getAttribute('data-view') === viewName);
     });
 
-    // Mobile bottom nav
+    // Mobile bottom nav (Public)
     document.querySelectorAll('.bottom-nav-item').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-view') === viewName);
+    });
+
+    // Admin bottom nav (Mobile)
+    document.querySelectorAll('.admin-bottom-nav-item').forEach(b => {
+      if (b.id === 'admin-bottom-nav-menu') return;
       b.classList.toggle('active', b.getAttribute('data-view') === viewName);
     });
 
@@ -259,6 +353,7 @@ class AmbulanApp {
   }
 
   handleLogout() {
+    document.body.classList.remove('admin-mode');
     sessionStorage.removeItem('maisya_admin_token');
     sessionStorage.removeItem('maisya_admin_user');
     this.showToast('Anda telah keluar dari akun admin.', 'info');

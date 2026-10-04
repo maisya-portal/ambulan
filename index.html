@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Application CSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
 
@@ -814,17 +814,26 @@
        ADMIN PORTAL WRAPPER (Ditampilkan jika View = admin-*)
        ========================================================================= -->
   <div class="admin-wrapper" id="admin-wrapper" style="display: none;">
+    <!-- Backdrop Gelap untuk Drawer Sidebar Mobile -->
+    <div class="admin-sidebar-backdrop" id="admin-sidebar-backdrop"></div>
+
     <!-- Sidebar Admin -->
     <aside class="admin-sidebar" id="admin-sidebar">
-      <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <img src="assets/logo.png" alt="Admin" style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain;">
-        <div>
-          <div style="font-weight: 800; font-size: 0.95rem; color: #ffffff;">ADMIN AMBULAN</div>
-          <div style="font-size: 0.75rem; color: #10b981;" id="admin-profile-name">Ustadz Admin</div>
-          <div style="margin-top: 0.25rem; display: flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; color: #a7f3d0;" id="admin-sidebar-status">
-            <span class="pulse-green"></span> Apps Script Online
+      <div class="admin-sidebar-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <img src="assets/logo.png" alt="Admin" style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain;">
+          <div>
+            <div style="font-weight: 800; font-size: 0.95rem; color: #ffffff;">ADMIN AMBULAN</div>
+            <div style="font-size: 0.75rem; color: #10b981;" id="admin-profile-name">Ustadz Admin</div>
+            <div style="margin-top: 0.25rem; display: flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; color: #a7f3d0;" id="admin-sidebar-status">
+              <span class="pulse-green"></span> Apps Script Online
+            </div>
           </div>
         </div>
+        <!-- Tombol Tutup Sidebar di Layar HP -->
+        <button type="button" class="btn-sidebar-close" id="btn-close-admin-sidebar" aria-label="Tutup Menu Admin" title="Tutup Menu">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
       <div class="admin-menu-heading">Menu Utama</div>
@@ -853,6 +862,26 @@
 
     <!-- Main Content Admin -->
     <section class="admin-main">
+
+      <!-- Sticky Topbar Khusus Layar HP / Tablet -->
+      <div class="admin-mobile-topbar" id="admin-mobile-topbar">
+        <button type="button" class="btn-admin-drawer-toggle" id="btn-open-admin-sidebar" aria-label="Buka Menu Admin" title="Buka Menu Admin">
+          <i class="fa-solid fa-bars-staggered"></i>
+          <span>Menu</span>
+        </button>
+        <div class="admin-mobile-title-wrap">
+          <span class="admin-mobile-badge"><i class="fa-solid fa-shield-halved"></i> Admin Ambulan</span>
+          <span class="admin-mobile-view-name" id="admin-mobile-view-name">Dashboard</span>
+        </div>
+        <div class="admin-mobile-topbar-actions">
+          <button type="button" class="btn-admin-mobile-action" id="btn-admin-mobile-public" title="Buka Mode Publik">
+            <i class="fa-solid fa-globe"></i>
+          </button>
+          <button type="button" class="btn-admin-mobile-action btn-admin-mobile-logout" id="btn-admin-mobile-logout" title="Keluar">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
 
       <!-- 1. ADMIN: DASHBOARD -->
       <div class="app-view" id="view-admin-dashboard">
@@ -1332,7 +1361,37 @@
         </div>
       </div>
 
+      <!-- Floating Menu Button on Mobile (Selalu Mengambang di Pojok Layar HP) -->
+      <button type="button" class="admin-fab-toggle" id="admin-fab-toggle" aria-label="Buka Menu Admin" title="Buka Menu Admin">
+        <i class="fa-solid fa-bars"></i>
+        <span>Menu</span>
+      </button>
+
     </section>
+
+    <!-- Mobile Admin Bottom Navigation Bar -->
+    <nav class="admin-bottom-nav" id="admin-bottom-nav">
+      <a class="admin-bottom-nav-item active" data-view="admin-dashboard">
+        <i class="fa-solid fa-gauge"></i>
+        <span>Dashboard</span>
+      </a>
+      <a class="admin-bottom-nav-item" data-view="admin-donasi">
+        <i class="fa-solid fa-hand-holding-dollar"></i>
+        <span>Donasi</span>
+      </a>
+      <a class="admin-bottom-nav-item" data-view="admin-pengeluaran">
+        <i class="fa-solid fa-receipt"></i>
+        <span>Pengeluaran</span>
+      </a>
+      <a class="admin-bottom-nav-item" data-view="admin-saldo">
+        <i class="fa-solid fa-wallet"></i>
+        <span>Saldo</span>
+      </a>
+      <a class="admin-bottom-nav-item" id="admin-bottom-nav-menu">
+        <i class="fa-solid fa-bars"></i>
+        <span>Semua</span>
+      </a>
+    </nav>
   </div>
 
   <!-- =========================================================================
@@ -1759,9 +1818,9 @@
   </nav>
 
   <!-- Script Modules -->
-  <script src="js/api.js?v=5"></script>
-  <script src="js/public.js?v=5"></script>
-  <script src="js/admin.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/api.js?v=6"></script>
+  <script src="js/public.js?v=6"></script>
+  <script src="js/admin.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>
