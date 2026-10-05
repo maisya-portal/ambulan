@@ -1254,6 +1254,8 @@ body.admin-mode .emergency-ticker-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
   margin-bottom: 1.75rem;
   background: #ffffff;
   padding: 1.25rem 1.75rem;
