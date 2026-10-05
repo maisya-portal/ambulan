@@ -466,10 +466,10 @@
             </div>
 
             <!-- Rekening Bank Resmi -->
-            <h4 style="margin-bottom: 1rem; color: #064e3b;"><i class="fa-solid fa-building-columns"></i> Transfer Rekening Bank Resmi:</h4>
+            <h4 id="heading-transfer-bank" style="margin-bottom: 1rem; color: #064e3b;"><i class="fa-solid fa-building-columns"></i> Transfer Rekening Bank Resmi:</h4>
 
             <!-- Bank 1 (Utama) -->
-            <div class="bank-card">
+            <div class="bank-card" id="card-bank1">
               <div class="bank-info">
                 <h5 id="text-bank1-nama">Bank Syariah Indonesia (BSI)</h5>
                 <p id="text-bank1-atas-nama">a.n. YAYASAN IMAM SYAFII BREBES</p>
@@ -481,7 +481,7 @@
             </div>
 
             <!-- Bank 2 (Sekunder) -->
-            <div class="bank-card">
+            <div class="bank-card" id="card-bank2">
               <div class="bank-info">
                 <h5 id="text-bank2-nama">Bank Muamalat</h5>
                 <p id="text-bank2-atas-nama">a.n. Ponpes Imam Syafi'i Brebes</p>
@@ -1300,11 +1300,18 @@
             <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">Perubahan rekening di sini langsung tersimpan ke Google Spreadsheet dan otomatis tampil di halaman publik &amp; cetak kwitansi.</p>
 
             <!-- Card Rekening 1 (Utama) -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem;">
-              <div style="font-weight: 700; color: #065f46; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-wallet text-primary"></i> Rekening Bank 1 (Utama)
+            <div id="card-setting-bank1" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; transition: all 0.2s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.65rem;">
+                <div style="font-weight: 700; color: #065f46; display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa-solid fa-wallet text-primary"></i> Rekening Bank 1 (Utama)
+                  <span id="badge-bank1-status" style="font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 999px; background: #d1fae5; color: #065f46; font-weight: 600;">Ditampilkan</span>
+                </div>
+                <label style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; background: #ffffff; padding: 0.35rem 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+                  <input type="checkbox" id="setting-bank1-aktif" style="width: 17px; height: 17px; accent-color: #0d7a57; cursor: pointer;" checked>
+                  <span style="font-size: 0.82rem; font-weight: 600; color: #1e293b;">Tampilkan di Halaman Donasi</span>
+                </label>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+              <div id="container-setting-bank1-inputs" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; transition: opacity 0.2s ease;">
                 <div class="form-group" style="margin-bottom: 0;">
                   <label class="form-label" style="font-size: 0.82rem;">Nama Bank:</label>
                   <input type="text" id="setting-bank1-nama" class="form-input" value="Bank Syariah Indonesia (BSI)" placeholder="Misal: Bank Syariah Indonesia (BSI)">
@@ -1321,11 +1328,18 @@
             </div>
 
             <!-- Card Rekening 2 (Sekunder) -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem;">
-              <div style="font-weight: 700; color: #065f46; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-wallet text-primary"></i> Rekening Bank 2 (Sekunder)
+            <div id="card-setting-bank2" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; transition: all 0.2s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.65rem;">
+                <div style="font-weight: 700; color: #065f46; display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa-solid fa-wallet text-primary"></i> Rekening Bank 2 (Sekunder)
+                  <span id="badge-bank2-status" style="font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 999px; background: #d1fae5; color: #065f46; font-weight: 600;">Ditampilkan</span>
+                </div>
+                <label style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; background: #ffffff; padding: 0.35rem 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+                  <input type="checkbox" id="setting-bank2-aktif" style="width: 17px; height: 17px; accent-color: #0d7a57; cursor: pointer;" checked>
+                  <span style="font-size: 0.82rem; font-weight: 600; color: #1e293b;">Tampilkan di Halaman Donasi</span>
+                </label>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+              <div id="container-setting-bank2-inputs" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; transition: opacity 0.2s ease;">
                 <div class="form-group" style="margin-bottom: 0;">
                   <label class="form-label" style="font-size: 0.82rem;">Nama Bank:</label>
                   <input type="text" id="setting-bank2-nama" class="form-input" value="Bank Muamalat" placeholder="Misal: Bank Muamalat">
@@ -1923,9 +1937,9 @@
   </nav>
 
   <!-- Script Modules -->
-  <script src="js/api.js?v=8"></script>
-  <script src="js/public.js?v=8"></script>
-  <script src="js/admin.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/api.js?v=9"></script>
+  <script src="js/public.js?v=9"></script>
+  <script src="js/admin.js?v=9"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 </html>

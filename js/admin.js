@@ -525,19 +525,33 @@ class AdminPortal {
     const b1Nama = s.bank1_nama || 'Bank Syariah Indonesia (BSI)';
     const b1Norek = s.bank1_norek || (s.rekening_bsi ? (s.rekening_bsi.match(/\d[\d\s-]{4,}\d/) || [s.rekening_bsi])[0].replace(/[^\d]/g, '') : '7123456789');
     let b1An = s.bank1_atas_nama || (s.rekening_bsi && s.rekening_bsi.includes('a.n.') ? s.rekening_bsi.split('a.n.')[1].trim() : 'YAYASAN IMAM SYAFII BREBES');
+    const b1Aktif = (s.bank1_aktif === undefined || s.bank1_aktif === null || String(s.bank1_aktif) === 'true' || s.bank1_aktif === true);
 
     if (inputBank1Nama) inputBank1Nama.value = b1Nama;
     if (inputBank1Norek) inputBank1Norek.value = b1Norek;
     if (inputBank1AtasNama) inputBank1AtasNama.value = b1An;
 
+    const inputBank1Aktif = document.getElementById('setting-bank1-aktif');
+    if (inputBank1Aktif) {
+      inputBank1Aktif.checked = b1Aktif;
+      this.updateBankCardVisual(1, b1Aktif);
+    }
+
     // Bank 2
     const b2Nama = s.bank2_nama || 'Bank Muamalat';
     const b2Norek = s.bank2_norek || (s.rekening_muamalat ? (s.rekening_muamalat.match(/\d[\d\s-]{4,}\d/) || [s.rekening_muamalat])[0].replace(/[^\d]/g, '') : '5010099888');
     let b2An = s.bank2_atas_nama || (s.rekening_muamalat && s.rekening_muamalat.includes('a.n.') ? s.rekening_muamalat.split('a.n.')[1].trim() : "Ponpes Imam Syafi'i Brebes");
+    const b2Aktif = (s.bank2_aktif === undefined || s.bank2_aktif === null || String(s.bank2_aktif) === 'true' || s.bank2_aktif === true);
 
     if (inputBank2Nama) inputBank2Nama.value = b2Nama;
     if (inputBank2Norek) inputBank2Norek.value = b2Norek;
     if (inputBank2AtasNama) inputBank2AtasNama.value = b2An;
+
+    const inputBank2Aktif = document.getElementById('setting-bank2-aktif');
+    if (inputBank2Aktif) {
+      inputBank2Aktif.checked = b2Aktif;
+      this.updateBankCardVisual(2, b2Aktif);
+    }
 
     // Legacy
     if (inputBsiLegacy) inputBsiLegacy.value = `${b1Norek} a.n. ${b1An}`;
@@ -550,6 +564,30 @@ class AdminPortal {
     if (inputAlamat) inputAlamat.value = s.alamat_ponpes || 'Jl. Terusan Islamic Center – Sigempol Km. 3, Kelurahan Limbangan Wetan, Kecamatan Brebes, Kabupaten Brebes, Jawa Tengah 52218';
 
     this.updateConnectionBadges(true);
+  }
+
+  updateBankCardVisual(bankNum, isChecked) {
+    const card = document.getElementById(`card-setting-bank${bankNum}`);
+    const badge = document.getElementById(`badge-bank${bankNum}-status`);
+    const container = document.getElementById(`container-setting-bank${bankNum}-inputs`);
+    if (badge) {
+      if (isChecked) {
+        badge.innerText = 'Ditampilkan';
+        badge.style.background = '#d1fae5';
+        badge.style.color = '#065f46';
+      } else {
+        badge.innerText = 'Disembunyikan';
+        badge.style.background = '#e2e8f0';
+        badge.style.color = '#475569';
+      }
+    }
+    if (container) {
+      container.style.opacity = isChecked ? '1' : '0.45';
+    }
+    if (card) {
+      card.style.borderColor = isChecked ? '#e2e8f0' : '#cbd5e1';
+      card.style.background = isChecked ? '#f8fafc' : '#f1f5f9';
+    }
   }
 
   async runTestConnection(manualUrl = null) {
@@ -752,6 +790,27 @@ class AdminPortal {
     if (previewCont) previewCont.style.display = 'none';
     const previewImg = document.getElementById('donasi-manual-bukti-preview');
     if (previewImg) previewImg.src = '';
+
+    // Update opsi metode donasi manual sesuai bank yang aktif
+    const selMetode = document.getElementById('donasi-manual-metode');
+    if (selMetode) {
+      const s = (this.adminData && this.adminData.settings) ? this.adminData.settings : (window.ambulanApi.getDb()?.settings || {});
+      const b1Nama = s.bank1_nama || 'Bank Syariah Indonesia (BSI)';
+      const b2Nama = s.bank2_nama || 'Bank Muamalat';
+      const isB1Aktif = (s.bank1_aktif === undefined || s.bank1_aktif === null || String(s.bank1_aktif) === 'true' || s.bank1_aktif === true);
+      const isB2Aktif = (s.bank2_aktif === undefined || s.bank2_aktif === null || String(s.bank2_aktif) === 'true' || s.bank2_aktif === true);
+
+      let html = '';
+      if (isB1Aktif) html += `<option value="${b1Nama}">${b1Nama}</option>`;
+      if (isB2Aktif) html += `<option value="${b2Nama}">${b2Nama}</option>`;
+      html += `<option value="QRIS">QRIS</option>`;
+      html += `<option value="Tunai / Kas">Tunai / Kas Langsung</option>`;
+      if (!isB1Aktif && !isB2Aktif) {
+        html += `<option value="Transfer Bank Lain">Transfer Bank Lain</option>`;
+      }
+      selMetode.innerHTML = html;
+    }
+
     window.app.openModal('modal-tambah-donasi');
   }
 
@@ -1215,10 +1274,12 @@ class AdminPortal {
         const bank1Nama = document.getElementById('setting-bank1-nama')?.value.trim() || 'Bank Syariah Indonesia (BSI)';
         const bank1Norek = (document.getElementById('setting-bank1-norek')?.value.trim() || '7123456789').replace(/[^\d]/g, '');
         const bank1AtasNama = document.getElementById('setting-bank1-atas-nama')?.value.trim() || 'YAYASAN IMAM SYAFII BREBES';
+        const bank1Aktif = document.getElementById('setting-bank1-aktif') ? document.getElementById('setting-bank1-aktif').checked : true;
 
         const bank2Nama = document.getElementById('setting-bank2-nama')?.value.trim() || 'Bank Muamalat';
         const bank2Norek = (document.getElementById('setting-bank2-norek')?.value.trim() || '5010099888').replace(/[^\d]/g, '');
         const bank2AtasNama = document.getElementById('setting-bank2-atas-nama')?.value.trim() || "Ponpes Imam Syafi'i Brebes";
+        const bank2Aktif = document.getElementById('setting-bank2-aktif') ? document.getElementById('setting-bank2-aktif').checked : true;
 
         const hotlineVal = document.getElementById('setting-hotline')?.value.trim() || '0812-9154-2134 (Ustadz Tegar)';
         const waVal = (document.getElementById('setting-wa-konfirmasi')?.value.trim() || '6281291542134').replace(/[^\d]/g, '');
@@ -1238,9 +1299,11 @@ class AdminPortal {
           bank1_nama: bank1Nama,
           bank1_norek: bank1Norek,
           bank1_atas_nama: bank1AtasNama,
+          bank1_aktif: bank1Aktif ? "true" : "false",
           bank2_nama: bank2Nama,
           bank2_norek: bank2Norek,
           bank2_atas_nama: bank2AtasNama,
+          bank2_aktif: bank2Aktif ? "true" : "false",
           rekening_bsi: `${bank1Norek} a.n. ${bank1AtasNama}`,
           rekening_muamalat: `${bank2Norek} a.n. ${bank2AtasNama}`,
           hotline_darurat: hotlineVal,
@@ -1257,6 +1320,21 @@ class AdminPortal {
         } catch (e) {
           window.app.showToast('Gagal menyimpan pengaturan: ' + e.toString(), 'error');
         }
+      });
+    }
+
+    // Checkbox Toggle Tampilkan Bank 1 & Bank 2
+    const chkBank1 = document.getElementById('setting-bank1-aktif');
+    if (chkBank1) {
+      chkBank1.addEventListener('change', (e) => {
+        this.updateBankCardVisual(1, e.target.checked);
+      });
+    }
+
+    const chkBank2 = document.getElementById('setting-bank2-aktif');
+    if (chkBank2) {
+      chkBank2.addEventListener('change', (e) => {
+        this.updateBankCardVisual(2, e.target.checked);
       });
     }
 

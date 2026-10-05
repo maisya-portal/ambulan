@@ -129,27 +129,71 @@ class PublicPortal {
       b2AtasNama = 'a.n. ' + b2AtasNama;
     }
 
+    const isB1Aktif = (settings.bank1_aktif === undefined || settings.bank1_aktif === null || String(settings.bank1_aktif) === 'true' || settings.bank1_aktif === true);
+    const isB2Aktif = (settings.bank2_aktif === undefined || settings.bank2_aktif === null || String(settings.bank2_aktif) === 'true' || settings.bank2_aktif === true);
+
     // Bank 1 UI elements
     const elB1Nama = document.getElementById('text-bank1-nama');
     const elB1An = document.getElementById('text-bank1-atas-nama');
     const elB1Norek = document.getElementById('text-bank1-norek');
     const btnCopyB1 = document.getElementById('btn-copy-bank1');
+    const cardB1 = document.getElementById('card-bank1') || (elB1Nama ? elB1Nama.closest('.bank-card') : null);
 
     if (elB1Nama) elB1Nama.innerText = b1Nama;
     if (elB1An) elB1An.innerText = b1AtasNama;
     if (elB1Norek) elB1Norek.innerText = b1Norek;
     if (btnCopyB1) btnCopyB1.setAttribute('data-copy', b1Norek);
+    if (cardB1) cardB1.style.display = isB1Aktif ? '' : 'none';
 
     // Bank 2 UI elements
     const elB2Nama = document.getElementById('text-bank2-nama');
     const elB2An = document.getElementById('text-bank2-atas-nama');
     const elB2Norek = document.getElementById('text-bank2-norek');
     const btnCopyB2 = document.getElementById('btn-copy-bank2');
+    const cardB2 = document.getElementById('card-bank2') || (elB2Nama ? elB2Nama.closest('.bank-card') : null);
 
     if (elB2Nama) elB2Nama.innerText = b2Nama;
     if (elB2An) elB2An.innerText = b2AtasNama;
     if (elB2Norek) elB2Norek.innerText = b2Norek;
     if (btnCopyB2) btnCopyB2.setAttribute('data-copy', b2Norek);
+    if (cardB2) cardB2.style.display = isB2Aktif ? '' : 'none';
+
+    // Header Rekening Bank
+    const headingBank = document.getElementById('heading-transfer-bank');
+    if (headingBank) {
+      headingBank.style.display = (!isB1Aktif && !isB2Aktif) ? 'none' : '';
+    }
+
+    // Dynamic Select Metode Pembayaran di Konfirmasi Donasi
+    const selMetode = document.getElementById('select-metode-bayar');
+    if (selMetode) {
+      const prevVal = selMetode.value;
+      selMetode.innerHTML = '';
+      if (isB1Aktif) {
+        const opt1 = document.createElement('option');
+        opt1.value = `Transfer ${b1Nama}`;
+        opt1.innerText = `Transfer ${b1Nama}`;
+        selMetode.appendChild(opt1);
+      }
+      if (isB2Aktif) {
+        const opt2 = document.createElement('option');
+        opt2.value = `Transfer ${b2Nama}`;
+        opt2.innerText = `Transfer ${b2Nama}`;
+        selMetode.appendChild(opt2);
+      }
+      const optQris = document.createElement('option');
+      optQris.value = 'QRIS';
+      optQris.innerText = 'QRIS (GoPay/OVO/Dana/BCA/dll)';
+      selMetode.appendChild(optQris);
+
+      const optTunai = document.createElement('option');
+      optTunai.value = 'Tunai Langsung';
+      optTunai.innerText = 'Tunai Langsung di Kantor Pesantren';
+      selMetode.appendChild(optTunai);
+
+      const hasMatch = Array.from(selMetode.options).some(o => o.value === prevVal);
+      if (hasMatch) selMetode.value = prevVal;
+    }
 
     // Legacy fallback IDs
     const elBsi = document.getElementById('text-rek-bsi');
