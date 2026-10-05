@@ -1057,6 +1057,389 @@ class AmbulanApi {
     return { success: true, message: 'Catatan pengeluaran berhasil disimpan!', id: id };
   }
 
+  async editDonasi(id, updateData, adminName) {
+    const admin = adminName || 'Admin';
+    if (this.isOnlineMode()) {
+      try {
+        await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'editDonasi', id, ...updateData, adminName: admin })
+        });
+      } catch (e) {
+        console.warn('Apps script editDonasi error, fallback ke local storage:', e);
+      }
+    }
+
+    const db = this.getDb();
+    const idx = (db.donasi_masuk || []).findIndex(d => String(d.id) === String(id));
+    if (idx === -1) {
+      return { success: false, message: 'Data donasi tidak ditemukan' };
+    }
+
+    const item = db.donasi_masuk[idx];
+    if (updateData.tanggal) item.tanggal = updateData.tanggal;
+    if (updateData.nama || updateData.nama_donatur) item.nama_donatur = updateData.nama || updateData.nama_donatur;
+    if (updateData.no_wa !== undefined) item.no_wa = updateData.no_wa;
+    if (updateData.nominal !== undefined) item.nominal = Number(updateData.nominal) || 0;
+    if (updateData.metode_bayar) item.metode_bayar = updateData.metode_bayar;
+    if (updateData.program) item.program = updateData.program;
+    if (updateData.doa_pesan !== undefined) item.doa_pesan = updateData.doa_pesan;
+    if (updateData.status) {
+      item.status = updateData.status;
+      if (item.status === 'Verified' && !item.verified_by) {
+        item.verified_by = admin;
+        item.verified_at = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      }
+    }
+
+    db.donasi_masuk[idx] = item;
+    db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
+
+    if (!db.audit_log) db.audit_log = [];
+    db.audit_log.unshift({
+      id: "AUD-" + Date.now(),
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: admin,
+      action: "EDIT_DONASI",
+      detail: `Memperbarui data donasi ${id} (${item.nama_donatur} - Rp ${(item.nominal || 0).toLocaleString('id-ID')})`
+    });
+
+    this.saveDb(db);
+    return { success: true, message: `Data donasi ${id} berhasil diperbarui!` };
+  }
+
+  async deleteDonasi(id, adminName) {
+    const admin = adminName || 'Admin';
+    if (this.isOnlineMode()) {
+      try {
+        await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'deleteDonasi', id, adminName: admin })
+        });
+      } catch (e) {
+        console.warn('Apps script deleteDonasi error, fallback ke local storage:', e);
+      }
+    }
+
+    const db = this.getDb();
+    const beforeCount = (db.donasi_masuk || []).length;
+    db.donasi_masuk = (db.donasi_masuk || []).filter(d => String(d.id) !== String(id));
+
+    if (db.donasi_masuk.length === beforeCount) {
+      return { success: false, message: 'ID donasi tidak ditemukan' };
+    }
+
+    db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
+
+    if (!db.audit_log) db.audit_log = [];
+    db.audit_log.unshift({
+      id: "AUD-" + Date.now(),
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: admin,
+      action: "DELETE_DONASI",
+      detail: `Menghapus data donasi ${id}`
+    });
+
+    this.saveDb(db);
+    return { success: true, message: `Data donasi ${id} berhasil dihapus!` };
+  }
+
+  async editPengeluaran(id, updateData, adminName) {
+    const admin = adminName || 'Admin';
+    if (this.isOnlineMode()) {
+      try {
+        await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'editPengeluaran', id, ...updateData, adminName: admin })
+        });
+      } catch (e) {
+        console.warn('Apps script editPengeluaran error, fallback ke local storage:', e);
+      }
+    }
+
+    const db = this.getDb();
+    const idx = (db.pengeluaran || []).findIndex(p => String(p.id) === String(id));
+    if (idx === -1) {
+      return { success: false, message: 'Data pengeluaran tidak ditemukan' };
+    }
+
+    const item = db.pengeluaran[idx];
+    if (updateData.tanggal) item.tanggal = updateData.tanggal;
+    if (updateData.kategori) item.kategori = updateData.kategori;
+    if (updateData.deskripsi) item.deskripsi = updateData.deskripsi;
+    if (updateData.nominal !== undefined) item.nominal = Number(updateData.nominal) || 0;
+    if (updateData.pic) item.pic = updateData.pic;
+
+    db.pengeluaran[idx] = item;
+
+    if (!db.audit_log) db.audit_log = [];
+    db.audit_log.unshift({
+      id: "AUD-" + Date.now(),
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: admin,
+      action: "EDIT_EXPENSE",
+      detail: `Memperbarui data pengeluaran ${id} (${item.kategori} - Rp ${(item.nominal || 0).toLocaleString('id-ID')})`
+    });
+
+    this.saveDb(db);
+    return { success: true, message: `Data pengeluaran ${id} berhasil diperbarui!` };
+  }
+
+  async deletePengeluaran(id, adminName) {
+    const admin = adminName || 'Admin';
+    if (this.isOnlineMode()) {
+      try {
+        await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'deletePengeluaran', id, adminName: admin })
+        });
+      } catch (e) {
+        console.warn('Apps script deletePengeluaran error, fallback ke local storage:', e);
+      }
+    }
+
+    const db = this.getDb();
+    const beforeCount = (db.pengeluaran || []).length;
+    db.pengeluaran = (db.pengeluaran || []).filter(p => String(p.id) !== String(id));
+
+    if (db.pengeluaran.length === beforeCount) {
+      return { success: false, message: 'ID pengeluaran tidak ditemukan' };
+    }
+
+    if (!db.audit_log) db.audit_log = [];
+    db.audit_log.unshift({
+      id: "AUD-" + Date.now(),
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: admin,
+      action: "DELETE_EXPENSE",
+      detail: `Menghapus data pengeluaran ${id}`
+    });
+
+    this.saveDb(db);
+    return { success: true, message: `Data pengeluaran ${id} berhasil dihapus!` };
+  }
+
+  async addDonaturManual(donaturData, adminName) {
+    const admin = adminName || 'Admin';
+    if (this.isOnlineMode()) {
+      try {
+        await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'addDonatur', ...donaturData, adminName: admin })
+        });
+      } catch (e) {
+        console.warn('Apps script addDonatur error, fallback ke local storage:', e);
+      }
+    }
+
+    const db = this.getDb();
+    if (!db.donatur) db.donatur = [];
+
+    const rawWa = String(donaturData.no_wa || '').trim().replace(/[^0-9]/g, '');
+    const cleanWa = rawWa.startsWith('0') ? '62' + rawWa.substring(1) : rawWa;
+    const normName = String(donaturData.nama || '').trim().toLowerCase();
+
+    // Cek apakah donatur sudah ada
+    let existing = db.donatur.find(d => {
+      const dWa = String(d.no_wa || '').trim().replace(/[^0-9]/g, '');
+      const dCleanWa = dWa.startsWith('0') ? '62' + dWa.substring(1) : dWa;
+      const dNormName = String(d.nama || '').trim().toLowerCase();
+      return (cleanWa && cleanWa.length >= 8 && dCleanWa === cleanWa) || (normName && dNormName === normName);
+    });
+
+    const initNominal = Number(donaturData.total_donasi || donaturData.nominal || 0);
+
+    if (existing) {
+      if (donaturData.nama && existing.nama === 'Hamba Allah') existing.nama = donaturData.nama;
+      if (donaturData.no_wa && (!existing.no_wa || existing.no_wa === '-')) existing.no_wa = donaturData.no_wa;
+      if (donaturData.alamat && (!existing.alamat || existing.alamat === '-')) existing.alamat = donaturData.alamat;
+      if (donaturData.email && (!existing.email || existing.email === '-')) existing.email = donaturData.email;
+      if (initNominal > 0) {
+        existing.total_donasi = (Number(existing.total_donasi) || 0) + initNominal;
+        existing.frekuensi = (Number(existing.frekuensi) || 0) + 1;
+      }
+    } else {
+      const newDtr = {
+        id: `DTR-${String(db.donatur.length + 1).padStart(3, '0')}`,
+        nama: donaturData.nama || 'Hamba Allah',
+        no_wa: donaturData.no_wa || '-',
+        email: donaturData.email || '-',
+        alamat: donaturData.alamat || 'Brebes & Sekitarnya',
+        total_donasi: initNominal,
+        frekuensi: initNominal > 0 ? 1 : 0,
+        donasi_terakhir: initNominal > 0 ? new Date().toISOString().substring(0, 10) : '-'
+      };
+      db.donatur.unshift(newDtr);
+    }
+
+    db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
+
+    if (!db.audit_log) db.audit_log = [];
+    db.audit_log.unshift({
+      id: "AUD-" + Date.now(),
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: admin,
+      action: "ADD_DONATUR",
+      detail: `Menambahkan donatur baru: ${donaturData.nama} (${donaturData.no_wa || '-'})`
+    });
+
+    this.saveDb(db);
+    return { success: true, message: `Donatur ${donaturData.nama} berhasil ditambahkan!` };
+  }
+
+  async importDonatur(donaturList, adminName) {
+    const admin = adminName || 'Admin';
+    if (!Array.isArray(donaturList) || donaturList.length === 0) {
+      return { success: false, message: 'Tidak ada data donatur yang valid untuk diimpor' };
+    }
+
+    if (this.isOnlineMode()) {
+      try {
+        await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'importDonatur', donaturList, adminName: admin })
+        });
+      } catch (e) {
+        console.warn('Apps script importDonatur error, fallback ke local storage:', e);
+      }
+    }
+
+    const db = this.getDb();
+    if (!db.donatur) db.donatur = [];
+
+    donaturList.forEach(d => {
+      const rawWa = String(d.no_wa || '').trim().replace(/[^0-9]/g, '');
+      const cleanWa = rawWa.startsWith('0') ? '62' + rawWa.substring(1) : rawWa;
+      const normName = String(d.nama || '').trim().toLowerCase();
+
+      let existing = db.donatur.find(ex => {
+        const exWa = String(ex.no_wa || '').trim().replace(/[^0-9]/g, '');
+        const exCleanWa = exWa.startsWith('0') ? '62' + exWa.substring(1) : exWa;
+        const exNorm = String(ex.nama || '').trim().toLowerCase();
+        return (cleanWa && cleanWa.length >= 8 && exCleanWa === cleanWa) || (normName && exNorm === normName);
+      });
+
+      const nom = Number(d.total_donasi || d.nominal || 0);
+
+      if (existing) {
+        if (d.alamat && d.alamat !== '-') existing.alamat = d.alamat;
+        if (d.email && d.email !== '-') existing.email = d.email;
+        if (d.no_wa && d.no_wa !== '-') existing.no_wa = d.no_wa;
+        if (nom > 0) {
+          existing.total_donasi = (Number(existing.total_donasi) || 0) + nom;
+          existing.frekuensi = (Number(existing.frekuensi) || 0) + 1;
+        }
+      } else {
+        db.donatur.push({
+          id: `DTR-${String(db.donatur.length + 1).padStart(3, '0')}`,
+          nama: d.nama || 'Hamba Allah',
+          no_wa: d.no_wa || '-',
+          email: d.email || '-',
+          alamat: d.alamat || 'Brebes & Sekitarnya',
+          total_donasi: nom,
+          frekuensi: nom > 0 ? 1 : 0,
+          donasi_terakhir: nom > 0 ? new Date().toISOString().substring(0, 10) : '-'
+        });
+      }
+    });
+
+    db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
+
+    if (!db.audit_log) db.audit_log = [];
+    db.audit_log.unshift({
+      id: "AUD-" + Date.now(),
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: admin,
+      action: "IMPORT_DONATUR",
+      detail: `Mengimpor ${donaturList.length} data donatur dari Excel/CSV`
+    });
+
+    this.saveDb(db);
+    return { success: true, count: donaturList.length, message: `Berhasil mengimpor ${donaturList.length} data donatur!` };
+  }
+
+  async importDonasi(donasiList, adminName) {
+    const admin = adminName || 'Admin';
+    if (!Array.isArray(donasiList) || donasiList.length === 0) {
+      return { success: false, message: 'Tidak ada data donasi yang valid untuk diimpor' };
+    }
+
+    if (this.isOnlineMode()) {
+      try {
+        await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'importDonasi', donasiList, adminName: admin })
+        });
+      } catch (e) {
+        console.warn('Apps script importDonasi error, fallback ke local storage:', e);
+      }
+    }
+
+    const db = this.getDb();
+    if (!db.donasi_masuk) db.donasi_masuk = [];
+
+    const now = new Date();
+    const nowStr = now.toISOString().replace('T', ' ').substring(0, 19);
+
+    donasiList.forEach((d, idx) => {
+      const nominal = Number(d.nominal) || 0;
+      if (nominal <= 0) return;
+
+      const id = "DON-" + now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') + "-" +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') +
+        String(now.getSeconds()).padStart(2, '0') + "-" + (idx + 1);
+
+      let tanggal = d.tanggal || nowStr.substring(0, 10);
+      if (tanggal.length === 10) {
+        tanggal += " " + now.toTimeString().substring(0, 8);
+      }
+
+      const status = d.status || 'Verified';
+      const verifiedBy = status === 'Verified' ? admin : '';
+      const verifiedAt = status === 'Verified' ? nowStr : '';
+
+      db.donasi_masuk.unshift({
+        id: id,
+        tanggal: tanggal,
+        nama_donatur: d.nama || d.nama_donatur || 'Hamba Allah',
+        no_wa: d.no_wa || '-',
+        nominal: nominal,
+        metode_bayar: d.metode_bayar || d.metode || 'Tunai / Cash (Kantor)',
+        program: d.program || 'Pengadaan Armada Ambulan',
+        doa_pesan: d.doa_pesan || d.doa || 'Impor data donasi dari Excel',
+        bukti_transfer: 'assets/logo.png',
+        status: status,
+        verified_by: verifiedBy,
+        verified_at: verifiedAt,
+        alasan_tolak: ''
+      });
+    });
+
+    db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
+
+    if (!db.audit_log) db.audit_log = [];
+    db.audit_log.unshift({
+      id: "AUD-" + Date.now(),
+      timestamp: nowStr,
+      user: admin,
+      action: "IMPORT_DONASI",
+      detail: `Mengimpor ${donasiList.length} transaksi donasi dari Excel/CSV`
+    });
+
+    this.saveDb(db);
+    return { success: true, count: donasiList.length, message: `Berhasil mengimpor ${donasiList.length} transaksi donasi!` };
+  }
+
   async manageUser(subAction, data, adminActor) {
     const db = this.getDb();
     const now = new Date().toISOString().replace('T', ' ').substring(0, 19);

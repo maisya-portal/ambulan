@@ -246,6 +246,27 @@ function doPost(e) {
       case "clearDemoData":
         responseData = clearDemoData();
         break;
+      case "editDonasi":
+        responseData = editDonasi(data);
+        break;
+      case "deleteDonasi":
+        responseData = deleteDonasi(data);
+        break;
+      case "editPengeluaran":
+        responseData = editPengeluaran(data);
+        break;
+      case "deletePengeluaran":
+        responseData = deletePengeluaran(data);
+        break;
+      case "addDonatur":
+        responseData = addDonaturManual(data);
+        break;
+      case "importDonatur":
+        responseData = importDonatur(data);
+        break;
+      case "importDonasi":
+        responseData = importDonasi(data);
+        break;
       default:
         responseData = { success: false, message: "Action POST tidak valid: " + action };
     }
@@ -1063,3 +1084,171 @@ function logAudit(user, action, detail) {
     // Ignore log fail
   }
 }
+
+function editDonasi(data) {
+  const ss = getSS();
+  const sheet = ss.getSheetByName("donasi_masuk");
+  if (!sheet) return { success: false, message: "Sheet donasi_masuk tidak ditemukan" };
+
+  const id = data.id;
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      if (data.tanggal) sheet.getRange(i + 1, 2).setValue(data.tanggal);
+      if (data.nama || data.nama_donatur) sheet.getRange(i + 1, 3).setValue(data.nama || data.nama_donatur);
+      if (data.no_wa !== undefined) sheet.getRange(i + 1, 4).setValue(data.no_wa);
+      if (data.nominal !== undefined) sheet.getRange(i + 1, 5).setValue(Number(data.nominal));
+      if (data.metode_bayar) sheet.getRange(i + 1, 6).setValue(data.metode_bayar);
+      if (data.program) sheet.getRange(i + 1, 7).setValue(data.program);
+      if (data.doa_pesan !== undefined) sheet.getRange(i + 1, 8).setValue(data.doa_pesan);
+      if (data.status) {
+        sheet.getRange(i + 1, 10).setValue(data.status);
+        if (data.status === 'Verified' && !rows[i][10]) {
+          sheet.getRange(i + 1, 11).setValue(data.adminName || "Admin");
+          sheet.getRange(i + 1, 12).setValue(Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss"));
+        }
+      }
+      logAudit(data.adminName || "Admin", "EDIT_DONASI", "Mengubah data donasi " + id);
+      return { success: true, message: "Data donasi " + id + " berhasil diperbarui" };
+    }
+  }
+  return { success: false, message: "ID donasi tidak ditemukan" };
+}
+
+function deleteDonasi(data) {
+  const ss = getSS();
+  const sheet = ss.getSheetByName("donasi_masuk");
+  if (!sheet) return { success: false, message: "Sheet donasi_masuk tidak ditemukan" };
+
+  const id = data.id;
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      sheet.deleteRow(i + 1);
+      logAudit(data.adminName || "Admin", "DELETE_DONASI", "Menghapus donasi " + id);
+      return { success: true, message: "Donasi " + id + " berhasil dihapus" };
+    }
+  }
+  return { success: false, message: "ID donasi tidak ditemukan" };
+}
+
+function editPengeluaran(data) {
+  const ss = getSS();
+  const sheet = ss.getSheetByName("pengeluaran");
+  if (!sheet) return { success: false, message: "Sheet pengeluaran tidak ditemukan" };
+
+  const id = data.id;
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      if (data.tanggal) sheet.getRange(i + 1, 2).setValue(data.tanggal);
+      if (data.kategori) sheet.getRange(i + 1, 3).setValue(data.kategori);
+      if (data.deskripsi) sheet.getRange(i + 1, 4).setValue(data.deskripsi);
+      if (data.nominal !== undefined) sheet.getRange(i + 1, 5).setValue(Number(data.nominal));
+      if (data.pic) sheet.getRange(i + 1, 6).setValue(data.pic);
+      logAudit(data.adminName || "Admin", "EDIT_EXPENSE", "Mengubah data pengeluaran " + id);
+      return { success: true, message: "Data pengeluaran " + id + " berhasil diperbarui" };
+    }
+  }
+  return { success: false, message: "ID pengeluaran tidak ditemukan" };
+}
+
+function deletePengeluaran(data) {
+  const ss = getSS();
+  const sheet = ss.getSheetByName("pengeluaran");
+  if (!sheet) return { success: false, message: "Sheet pengeluaran tidak ditemukan" };
+
+  const id = data.id;
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(id)) {
+      sheet.deleteRow(i + 1);
+      logAudit(data.adminName || "Admin", "DELETE_EXPENSE", "Menghapus pengeluaran " + id);
+      return { success: true, message: "Pengeluaran " + id + " berhasil dihapus" };
+    }
+  }
+  return { success: false, message: "ID pengeluaran tidak ditemukan" };
+}
+
+function addDonaturManual(data) {
+  const ss = getSS();
+  const sheet = ss.getSheetByName("donatur");
+  if (!sheet) return { success: false, message: "Sheet donatur tidak ditemukan" };
+
+  const id = "DTR-" + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd-HHmmss");
+  const nama = data.nama || "Hamba Allah";
+  const no_wa = data.no_wa || "-";
+  const email = data.email || "-";
+  const alamat = data.alamat || "-";
+  const total_donasi = Number(data.total_donasi || data.nominal || 0);
+
+  sheet.appendRow([
+    id, nama, no_wa, email, alamat, total_donasi, total_donasi > 0 ? 1 : 0,
+    new Date().toISOString(), new Date().toISOString()
+  ]);
+
+  logAudit(data.adminName || "Admin", "ADD_DONATUR", "Menambah data donatur: " + nama + " (" + no_wa + ")");
+  return { success: true, message: "Donatur " + nama + " berhasil ditambahkan!", id: id };
+}
+
+function importDonatur(data) {
+  const ss = getSS();
+  const sheet = ss.getSheetByName("donatur");
+  if (!sheet) return { success: false, message: "Sheet donatur tidak ditemukan" };
+
+  const list = data.donaturList || [];
+  let count = 0;
+  list.forEach(function(d) {
+    if (!d.nama && !d.nama_donatur) return;
+    const nama = d.nama || d.nama_donatur;
+    const id = "DTR-" + (Date.now() + count);
+    const no_wa = d.no_wa || "-";
+    const email = d.email || "-";
+    const alamat = d.alamat || "-";
+    const total_donasi = Number(d.total_donasi || d.nominal || 0);
+    sheet.appendRow([
+      id, nama, no_wa, email, alamat, total_donasi, total_donasi > 0 ? 1 : 0,
+      new Date().toISOString(), new Date().toISOString()
+    ]);
+    count++;
+  });
+
+  logAudit(data.adminName || "Admin", "IMPORT_DONATUR", "Mengimpor " + count + " data donatur");
+  return { success: true, count: count, message: "Berhasil mengimpor " + count + " data donatur!" };
+}
+
+function importDonasi(data) {
+  const ss = getSS();
+  const sheet = ss.getSheetByName("donasi_masuk");
+  if (!sheet) return { success: false, message: "Sheet donasi_masuk tidak ditemukan" };
+
+  const list = data.donasiList || [];
+  let count = 0;
+  const adminName = data.adminName || "Admin";
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+
+  list.forEach(function(d) {
+    const nama = d.nama || d.nama_donatur || "Hamba Allah";
+    const nominal = Number(d.nominal) || 0;
+    if (nominal <= 0) return;
+
+    const id = "DON-" + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd-HHmmss") + "-" + (count + 1);
+    const tanggal = d.tanggal || Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd");
+    const no_wa = d.no_wa || "-";
+    const metode = d.metode_bayar || d.metode || "Tunai / Cash";
+    const program = d.program || "Pengadaan Armada Ambulan";
+    const doa = d.doa_pesan || d.doa || "Impor dari file Excel";
+    const status = d.status || "Verified";
+    const verifiedBy = status === "Verified" ? adminName : "";
+    const verifiedAt = status === "Verified" ? nowStr : "";
+
+    sheet.appendRow([
+      id, tanggal, nama, no_wa, nominal, metode, program, doa, "", status, verifiedBy, verifiedAt, ""
+    ]);
+    count++;
+  });
+
+  logAudit(adminName, "IMPORT_DONASI", "Mengimpor " + count + " transaksi donasi");
+  return { success: true, count: count, message: "Berhasil mengimpor " + count + " transaksi donasi!" };
+}
+

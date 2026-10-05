@@ -158,9 +158,15 @@ class AdminPortal {
           </td>
           <td><span class="badge ${badgeClass}">${d.status}</span></td>
           <td>
-            <div style="display: flex; gap: 0.35rem;">
+            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
               <button class="btn btn-sm btn-outline" title="Review Bukti & Verifikasi" onclick="window.adminPortal.openVerifyModal('${d.id}')">
                 <i class="fa-solid fa-eye"></i> Periksa
+              </button>
+              <button class="btn btn-sm btn-outline" title="Edit Data Donasi" onclick="window.adminPortal.openEditDonasiModal('${d.id}')" style="color: #0284c7; border-color: #bae6fd;">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+              </button>
+              <button class="btn btn-sm btn-danger" title="Hapus Donasi Ini" onclick="window.adminPortal.confirmDeleteDonasi('${d.id}')" style="padding: 0.25rem 0.55rem; font-size: 0.8rem;">
+                <i class="fa-solid fa-trash"></i>
               </button>
               ${d.status === 'Verified' ? `
                 <button class="btn btn-sm btn-gold" title="Cetak Kwitansi" onclick="window.adminPortal.printKwitansi('${d.id}')">
@@ -276,7 +282,7 @@ class AdminPortal {
 
     const list = this.adminData.pengeluaran;
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 2rem; color: #64748b;">Belum ada data pengeluaran dicatat</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #64748b;">Belum ada data pengeluaran dicatat</td></tr>`;
       return;
     }
 
@@ -288,6 +294,16 @@ class AdminPortal {
         <td>${p.deskripsi}</td>
         <td><strong>${p.pic || 'Admin'}</strong></td>
         <td style="font-weight: 800; color: #ef4444;">${formatRp(p.nominal)}</td>
+        <td>
+          <div style="display: flex; gap: 0.35rem;">
+            <button class="btn btn-sm btn-outline" title="Edit Pengeluaran" onclick="window.adminPortal.openEditPengeluaranModal('${p.id}')" style="color: #0284c7; border-color: #bae6fd;">
+              <i class="fa-solid fa-pen-to-square"></i> Edit
+            </button>
+            <button class="btn btn-sm btn-danger" title="Hapus Pengeluaran Ini" onclick="window.adminPortal.confirmDeletePengeluaran('${p.id}')" style="padding: 0.25rem 0.55rem; font-size: 0.8rem;">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </td>
       </tr>
     `).join('');
   }
@@ -777,9 +793,48 @@ class AdminPortal {
     if (tglInput) {
       tglInput.value = new Date().toISOString().substring(0, 10);
     }
+
+    // Populate list donatur tersimpan ke dropdown dan datalist
+    const selDonatur = document.getElementById('donasi-manual-select-donatur');
+    const dlDonatur = document.getElementById('donatur-autocomplete-list');
+    const badgeDonatur = document.getElementById('donasi-manual-donor-badge');
+    const badgeText = document.getElementById('donasi-manual-donor-badge-text');
+    if (badgeDonatur) badgeDonatur.style.display = 'none';
+
+    const donaturList = (this.adminData && this.adminData.donatur) ? this.adminData.donatur : [];
+
+    if (selDonatur) {
+      let optHtml = '<option value="">-- Cari & Pilih dari Donatur Tersimpan (atau ketik langsung di bawah) --</option>';
+      donaturList.forEach(d => {
+        const dNama = d.nama || 'Hamba Allah';
+        const dWa = (d.no_wa && d.no_wa !== '-') ? d.no_wa : '';
+        const dTotal = d.total_donasi ? ` (Total: Rp ${Number(d.total_donasi).toLocaleString('id-ID')})` : '';
+        optHtml += `<option value="${dNama.replace(/"/g, '&quot;')}" data-wa="${dWa}" data-total="${d.total_donasi || 0}" data-freq="${d.frekuensi || 1}">${dNama}${dWa ? ' - ' + dWa : ''}${dTotal}</option>`;
+      });
+      selDonatur.innerHTML = optHtml;
+      selDonatur.value = donorNama || '';
+    }
+
+    if (dlDonatur) {
+      let dlHtml = '';
+      donaturList.forEach(d => {
+        const dNama = d.nama || 'Hamba Allah';
+        const dWa = (d.no_wa && d.no_wa !== '-') ? d.no_wa : '';
+        dlHtml += `<option value="${dNama.replace(/"/g, '&quot;')}">${dNama}${dWa ? ' (' + dWa + ')' : ''}</option>`;
+      });
+      dlDonatur.innerHTML = dlHtml;
+    }
+
     if (donorNama) {
       const namaInput = document.getElementById('donasi-manual-nama');
       if (namaInput) namaInput.value = donorNama;
+      if (badgeDonatur && badgeText) {
+        const found = donaturList.find(d => (d.nama || '').toLowerCase() === donorNama.toLowerCase());
+        if (found) {
+          badgeText.innerText = `Donatur Terdaftar: ${found.nama} (${found.frekuensi || 1}x donasi, total: Rp ${Number(found.total_donasi || 0).toLocaleString('id-ID')})`;
+          badgeDonatur.style.display = 'block';
+        }
+      }
     }
     if (donorWa && donorWa !== '-') {
       const waInput = document.getElementById('donasi-manual-wa');
@@ -803,8 +858,8 @@ class AdminPortal {
       let html = '';
       if (isB1Aktif) html += `<option value="${b1Nama}">${b1Nama}</option>`;
       if (isB2Aktif) html += `<option value="${b2Nama}">${b2Nama}</option>`;
-      html += `<option value="QRIS">QRIS</option>`;
-      html += `<option value="Tunai / Kas">Tunai / Kas Langsung</option>`;
+      html += `<option value="QRIS / E-Wallet">QRIS / E-Wallet Yayasan</option>`;
+      html += `<option value="Tunai / Cash (Kantor)">Tunai / Cash (Langsung ke Kantor)</option>`;
       if (!isB1Aktif && !isB2Aktif) {
         html += `<option value="Transfer Bank Lain">Transfer Bank Lain</option>`;
       }
@@ -1049,6 +1104,244 @@ class AdminPortal {
     }
   }
 
+  openEditDonasiModal(donasiId) {
+    if (!this.adminData || !this.adminData.donasi) return;
+    const d = this.adminData.donasi.find(x => String(x.id) === String(donasiId));
+    if (!d) {
+      window.app.showToast('Data donasi tidak ditemukan', 'error');
+      return;
+    }
+
+    document.getElementById('edit-donasi-id').value = d.id;
+    document.getElementById('edit-donasi-id-display').innerText = d.id;
+    document.getElementById('edit-donasi-tanggal').value = (d.tanggal || '').substring(0, 10);
+    document.getElementById('edit-donasi-nama').value = d.nama_donatur || '';
+    document.getElementById('edit-donasi-wa').value = (d.no_wa && d.no_wa !== '-') ? d.no_wa : '';
+    document.getElementById('edit-donasi-nominal').value = Number(d.nominal || 0).toLocaleString('id-ID');
+
+    const selMetode = document.getElementById('edit-donasi-metode');
+    if (selMetode && d.metode_bayar) selMetode.value = d.metode_bayar;
+
+    const selProg = document.getElementById('edit-donasi-program');
+    if (selProg && d.program) selProg.value = d.program;
+
+    const selStatus = document.getElementById('edit-donasi-status');
+    if (selStatus && d.status) selStatus.value = d.status;
+
+    document.getElementById('edit-donasi-doa').value = d.doa_pesan || '';
+
+    window.app.openModal('modal-edit-donasi');
+  }
+
+  async confirmDeleteDonasi(donasiId) {
+    if (!this.adminData || !this.adminData.donasi) return;
+    const d = this.adminData.donasi.find(x => String(x.id) === String(donasiId));
+    const label = d ? `${d.id} (${d.nama_donatur} - Rp ${Number(d.nominal || 0).toLocaleString('id-ID')})` : donasiId;
+
+    if (!confirm(`Apakah Anda yakin ingin MENGHAPUS data donasi ini?\n\n${label}\n\nPerhatian: Data yang dihapus tidak dapat dipulihkan.`)) {
+      return;
+    }
+
+    try {
+      const res = await window.ambulanApi.deleteDonasi(donasiId, this.getCurrentUser()?.nama || 'Admin');
+      if (res && res.success) {
+        window.app.showToast(res.message, 'success');
+        await this.loadAdminData();
+        await window.publicPortal.refreshPublicData();
+      } else {
+        window.app.showToast(res?.message || 'Gagal menghapus donasi', 'error');
+      }
+    } catch (err) {
+      window.app.showToast('Gagal menghapus donasi: ' + err.toString(), 'error');
+    }
+  }
+
+  openEditPengeluaranModal(expenseId) {
+    if (!this.adminData || !this.adminData.pengeluaran) return;
+    const p = this.adminData.pengeluaran.find(x => String(x.id) === String(expenseId));
+    if (!p) {
+      window.app.showToast('Data pengeluaran tidak ditemukan', 'error');
+      return;
+    }
+
+    document.getElementById('edit-exp-id').value = p.id;
+    document.getElementById('edit-exp-id-display').innerText = p.id;
+    document.getElementById('edit-exp-tanggal').value = (p.tanggal || '').substring(0, 10);
+    document.getElementById('edit-exp-kategori').value = p.kategori || 'Operasional Lainnya';
+    document.getElementById('edit-exp-deskripsi').value = p.deskripsi || '';
+    document.getElementById('edit-exp-nominal').value = Number(p.nominal || 0).toLocaleString('id-ID');
+    document.getElementById('edit-exp-pic').value = p.pic || 'Admin';
+
+    window.app.openModal('modal-edit-pengeluaran');
+  }
+
+  async confirmDeletePengeluaran(expenseId) {
+    if (!this.adminData || !this.adminData.pengeluaran) return;
+    const p = this.adminData.pengeluaran.find(x => String(x.id) === String(expenseId));
+    const label = p ? `${p.id} (${p.kategori}: ${p.deskripsi} - Rp ${Number(p.nominal || 0).toLocaleString('id-ID')})` : expenseId;
+
+    if (!confirm(`Apakah Anda yakin ingin MENGHAPUS catatan pengeluaran ini?\n\n${label}\n\nPerhatian: Data yang dihapus tidak dapat dipulihkan.`)) {
+      return;
+    }
+
+    try {
+      const res = await window.ambulanApi.deletePengeluaran(expenseId, this.getCurrentUser()?.nama || 'Admin');
+      if (res && res.success) {
+        window.app.showToast(res.message, 'success');
+        await this.loadAdminData();
+        await window.publicPortal.refreshPublicData();
+      } else {
+        window.app.showToast(res?.message || 'Gagal menghapus pengeluaran', 'error');
+      }
+    } catch (err) {
+      window.app.showToast('Gagal menghapus pengeluaran: ' + err.toString(), 'error');
+    }
+  }
+
+  openTambahDonaturModal() {
+    const f = document.getElementById('form-tambah-donatur');
+    if (f) f.reset();
+    window.app.openModal('modal-tambah-donatur');
+  }
+
+  downloadDonaturTemplate() {
+    const headers = ["Nama Donatur", "No WhatsApp", "Alamat", "Email", "Total Donasi Awal"];
+    const sampleRows = [
+      ["H. Ahmad Subarjo", "081234567890", "Limbangan Wetan, Brebes", "ahmad@example.com", 500000],
+      ["Hj. Siti Aminah", "085678901234", "Jatibarang, Brebes", "siti@example.com", 250000],
+      ["Umar Tiastono", "087812345678", "Brebes & Sekitarnya", "-", 100000],
+      ["Hamba Allah", "081298765432", "Brebes", "-", 50000]
+    ];
+
+    if (window.XLSX) {
+      const wb = XLSX.utils.book_new();
+      const wsData = [headers, ...sampleRows];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 30 }, { wch: 25 }, { wch: 18 }];
+      XLSX.utils.book_append_sheet(wb, ws, "Data Donatur");
+      XLSX.writeFile(wb, "template-data-donatur.xlsx");
+      window.app.showToast('Template Excel Data Donatur berhasil diunduh!', 'success');
+    } else {
+      let csv = headers.join(",") + "\n";
+      sampleRows.forEach(r => {
+        csv += r.map(x => `"${x}"`).join(",") + "\n";
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "template-data-donatur.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+      window.app.showToast('Template CSV Data Donatur berhasil diunduh!', 'success');
+    }
+  }
+
+  openImportDonaturModal() {
+    const f = document.getElementById('form-import-donatur');
+    if (f) f.reset();
+    const cont = document.getElementById('preview-import-donatur-container');
+    if (cont) cont.style.display = 'none';
+    const tbody = document.getElementById('tbody-preview-import-donatur');
+    if (tbody) tbody.innerHTML = '';
+    const btn = document.getElementById('btn-submit-import-donatur');
+    if (btn) btn.disabled = true;
+    this.pendingImportDonaturList = [];
+    window.app.openModal('modal-import-donatur');
+  }
+
+  downloadDonasiTemplate() {
+    const headers = ["Tanggal", "Nama Donatur", "No WhatsApp", "Nominal", "Metode Penerimaan", "Alokasi Program", "Status", "Doa / Catatan"];
+    const today = new Date().toISOString().substring(0, 10);
+    const sampleRows = [
+      [today, "H. Ahmad Subarjo", "081234567890", 500000, "Bank Syariah Indonesia (BSI)", "Pengadaan Armada Ambulan", "Verified", "Semoga berkah untuk umat"],
+      [today, "Hj. Siti Aminah", "085678901234", 250000, "Bank Muamalat", "Operasional & BBM Ambulan", "Verified", "Untuk kelancaran santri"],
+      [today, "Umar Tiastono", "087812345678", 50000, "QRIS / E-Wallet", "Peralatan Medis & Oksigen", "Verified", "Wakaf sedekah"],
+      [today, "Hamba Allah", "081298765432", 100000, "Tunai / Cash (Kantor)", "Sedekah Bebas / Terdesak", "Verified", "-"]
+    ];
+
+    if (window.XLSX) {
+      const wb = XLSX.utils.book_new();
+      const wsData = [headers, ...sampleRows];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [{ wch: 14 }, { wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 28 }, { wch: 30 }, { wch: 12 }, { wch: 35 }];
+      XLSX.utils.book_append_sheet(wb, ws, "Donasi Masuk");
+      XLSX.writeFile(wb, "template-donasi-masuk.xlsx");
+      window.app.showToast('Template Excel Donasi Masuk berhasil diunduh!', 'success');
+    } else {
+      let csv = headers.join(",") + "\n";
+      sampleRows.forEach(r => {
+        csv += r.map(x => `"${x}"`).join(",") + "\n";
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "template-donasi-masuk.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+      window.app.showToast('Template CSV Donasi Masuk berhasil diunduh!', 'success');
+    }
+  }
+
+  openImportDonasiModal() {
+    const f = document.getElementById('form-import-donasi');
+    if (f) f.reset();
+    const cont = document.getElementById('preview-import-donasi-container');
+    if (cont) cont.style.display = 'none';
+    const tbody = document.getElementById('tbody-preview-import-donasi');
+    if (tbody) tbody.innerHTML = '';
+    const btn = document.getElementById('btn-submit-import-donasi');
+    if (btn) btn.disabled = true;
+    this.pendingImportDonasiList = [];
+    window.app.openModal('modal-import-donasi');
+  }
+
+  parseExcelOrCsv(file, callback) {
+    const reader = new FileReader();
+    const isCsv = file.name.toLowerCase().endsWith('.csv');
+
+    reader.onload = (e) => {
+      try {
+        let rows = [];
+        if (window.XLSX && !isCsv) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+        } else {
+          let text = '';
+          if (e.target.result instanceof ArrayBuffer) {
+            text = new TextDecoder('utf-8').decode(e.target.result);
+          } else {
+            text = String(e.target.result || '');
+          }
+          rows = text.split(/\r?\n/).filter(line => line.trim().length > 0).map(line => {
+            const regex = /(?:,|\n|^)("(?:(?:"")*[^"]*)*"|[^",\n]*|(?:\n|$))/g;
+            const row = [];
+            let match;
+            while ((match = regex.exec(line)) !== null && match.index < line.length) {
+              let val = match[1] || '';
+              if (val.startsWith('"') && val.endsWith('"')) {
+                val = val.substring(1, val.length - 1).replace(/""/g, '"');
+              }
+              row.push(val.trim());
+              if (regex.lastIndex === match.index) regex.lastIndex++;
+            }
+            return row.length > 0 ? row : line.split(',').map(s => s.trim());
+          });
+        }
+        callback(null, rows);
+      } catch (err) {
+        callback(err, null);
+      }
+    };
+
+    reader.onerror = (err) => callback(err, null);
+    reader.readAsArrayBuffer(file);
+  }
+
   terbilang(bilangan) {
     const angka = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
     let hasil = "";
@@ -1260,6 +1553,451 @@ class AdminPortal {
           }
         } catch (err) {
           window.app.showToast('Gagal menyimpan pengeluaran: ' + err.toString(), 'error');
+        }
+      });
+    }
+
+    // Auto-fill Donatur pada Modal Catat Donasi Manual
+    const selDonatur = document.getElementById('donasi-manual-select-donatur');
+    const inputNamaDonasi = document.getElementById('donasi-manual-nama');
+    const inputWaDonasi = document.getElementById('donasi-manual-wa');
+    const badgeDonatur = document.getElementById('donasi-manual-donor-badge');
+    const badgeText = document.getElementById('donasi-manual-donor-badge-text');
+
+    if (selDonatur) {
+      selDonatur.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (!val) {
+          if (badgeDonatur) badgeDonatur.style.display = 'none';
+          return;
+        }
+        if (inputNamaDonasi) inputNamaDonasi.value = val;
+        const selectedOpt = selDonatur.options[selDonatur.selectedIndex];
+        const wa = selectedOpt?.getAttribute('data-wa');
+        const total = selectedOpt?.getAttribute('data-total');
+        const freq = selectedOpt?.getAttribute('data-freq');
+        if (inputWaDonasi && wa) inputWaDonasi.value = wa;
+        if (badgeDonatur && badgeText) {
+          badgeText.innerText = `Donatur Terdaftar: ${val} (${freq || 1}x donasi, total: Rp ${Number(total || 0).toLocaleString('id-ID')})`;
+          badgeDonatur.style.display = 'block';
+        }
+      });
+    }
+
+    if (inputNamaDonasi) {
+      inputNamaDonasi.addEventListener('input', (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        if (!query) {
+          if (badgeDonatur) badgeDonatur.style.display = 'none';
+          return;
+        }
+        const list = (this.adminData && this.adminData.donatur) ? this.adminData.donatur : [];
+        const match = list.find(d => (d.nama || '').toLowerCase() === query);
+        if (match) {
+          if (inputWaDonasi && match.no_wa && match.no_wa !== '-') inputWaDonasi.value = match.no_wa;
+          if (selDonatur) selDonatur.value = match.nama;
+          if (badgeDonatur && badgeText) {
+            badgeText.innerText = `Donatur Terdaftar: ${match.nama} (${match.frekuensi || 1}x donasi, total: Rp ${Number(match.total_donasi || 0).toLocaleString('id-ID')})`;
+            badgeDonatur.style.display = 'block';
+          }
+        } else {
+          if (badgeDonatur) badgeDonatur.style.display = 'none';
+        }
+      });
+    }
+
+    // Form Edit Donasi
+    const formEditDonasi = document.getElementById('form-edit-donasi');
+    if (formEditDonasi) {
+      const editNominal = document.getElementById('edit-donasi-nominal');
+      if (editNominal) {
+        editNominal.addEventListener('input', (e) => {
+          const raw = e.target.value.replace(/[^0-9]/g, '');
+          e.target.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+        });
+      }
+
+      formEditDonasi.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-donasi-id').value;
+        const data = {
+          tanggal: document.getElementById('edit-donasi-tanggal').value,
+          nama: document.getElementById('edit-donasi-nama').value.trim(),
+          no_wa: document.getElementById('edit-donasi-wa').value.trim() || '-',
+          nominal: Number((document.getElementById('edit-donasi-nominal').value || '').replace(/[^0-9]/g, '')) || 0,
+          metode_bayar: document.getElementById('edit-donasi-metode').value,
+          program: document.getElementById('edit-donasi-program').value,
+          status: document.getElementById('edit-donasi-status').value,
+          doa_pesan: document.getElementById('edit-donasi-doa').value.trim()
+        };
+
+        if (!data.nama) {
+          window.app.showToast('Harap isi nama donatur', 'warning');
+          return;
+        }
+        if (data.nominal <= 0) {
+          window.app.showToast('Nominal donasi harus lebih dari 0', 'warning');
+          return;
+        }
+
+        try {
+          const res = await window.ambulanApi.editDonasi(id, data, this.getCurrentUser()?.nama || 'Admin');
+          if (res && res.success) {
+            window.app.showToast(res.message, 'success');
+            window.app.closeModal('modal-edit-donasi');
+            await this.loadAdminData();
+            await window.publicPortal.refreshPublicData();
+          } else {
+            window.app.showToast(res?.message || 'Gagal mengubah donasi', 'error');
+          }
+        } catch (err) {
+          window.app.showToast('Gagal mengubah donasi: ' + err.toString(), 'error');
+        }
+      });
+    }
+
+    // Form Edit Pengeluaran
+    const formEditExp = document.getElementById('form-edit-pengeluaran');
+    if (formEditExp) {
+      const editExpNominal = document.getElementById('edit-exp-nominal');
+      if (editExpNominal) {
+        editExpNominal.addEventListener('input', (e) => {
+          const raw = e.target.value.replace(/[^0-9]/g, '');
+          e.target.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+        });
+      }
+
+      formEditExp.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-exp-id').value;
+        const data = {
+          tanggal: document.getElementById('edit-exp-tanggal').value,
+          kategori: document.getElementById('edit-exp-kategori').value,
+          deskripsi: document.getElementById('edit-exp-deskripsi').value.trim(),
+          nominal: Number((document.getElementById('edit-exp-nominal').value || '').replace(/[^0-9]/g, '')) || 0,
+          pic: document.getElementById('edit-exp-pic').value.trim() || 'Admin'
+        };
+
+        if (!data.deskripsi || data.nominal <= 0) {
+          window.app.showToast('Harap isi deskripsi dan nominal pengeluaran yang valid', 'warning');
+          return;
+        }
+
+        try {
+          const res = await window.ambulanApi.editPengeluaran(id, data, this.getCurrentUser()?.nama || 'Admin');
+          if (res && res.success) {
+            window.app.showToast(res.message, 'success');
+            window.app.closeModal('modal-edit-pengeluaran');
+            await this.loadAdminData();
+            await window.publicPortal.refreshPublicData();
+          } else {
+            window.app.showToast(res?.message || 'Gagal mengubah pengeluaran', 'error');
+          }
+        } catch (err) {
+          window.app.showToast('Gagal mengubah pengeluaran: ' + err.toString(), 'error');
+        }
+      });
+    }
+
+    // Form Tambah Donatur Manual
+    const formTambahDonatur = document.getElementById('form-tambah-donatur');
+    if (formTambahDonatur) {
+      const dtrNominal = document.getElementById('donatur-manual-nominal');
+      if (dtrNominal) {
+        dtrNominal.addEventListener('input', (e) => {
+          const raw = e.target.value.replace(/[^0-9]/g, '');
+          e.target.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+        });
+      }
+
+      formTambahDonatur.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nama = document.getElementById('donatur-manual-nama').value.trim();
+        const no_wa = document.getElementById('donatur-manual-wa').value.trim();
+        const alamat = document.getElementById('donatur-manual-alamat').value.trim();
+        const email = document.getElementById('donatur-manual-email').value.trim();
+        const nominal = Number((document.getElementById('donatur-manual-nominal').value || '').replace(/[^0-9]/g, '')) || 0;
+
+        if (!nama) {
+          window.app.showToast('Harap isi nama lengkap donatur', 'warning');
+          return;
+        }
+
+        try {
+          const res = await window.ambulanApi.addDonaturManual({
+            nama, no_wa, alamat, email, total_donasi: nominal
+          }, this.getCurrentUser()?.nama || 'Admin');
+
+          if (res && res.success) {
+            window.app.showToast(res.message, 'success');
+            formTambahDonatur.reset();
+            window.app.closeModal('modal-tambah-donatur');
+            await this.loadAdminData();
+          } else {
+            window.app.showToast(res?.message || 'Gagal menambahkan donatur', 'error');
+          }
+        } catch (err) {
+          window.app.showToast('Gagal menambahkan donatur: ' + err.toString(), 'error');
+        }
+      });
+    }
+
+    // File & Form Import Donatur dari Excel
+    const fileImportDonatur = document.getElementById('file-import-donatur');
+    const formImportDonatur = document.getElementById('form-import-donatur');
+    if (fileImportDonatur) {
+      fileImportDonatur.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        this.parseExcelOrCsv(file, (err, rows) => {
+          if (err || !rows || rows.length <= 1) {
+            window.app.showToast('Format file tidak terbaca atau file kosong', 'error');
+            return;
+          }
+
+          const headerRow = rows[0].map(h => String(h || '').trim().toLowerCase());
+          let idxNama = headerRow.findIndex(h => h.includes('nama') || h.includes('donatur'));
+          let idxWa = headerRow.findIndex(h => h.includes('wa') || h.includes('whatsapp') || h.includes('telp') || h.includes('hp'));
+          let idxAlamat = headerRow.findIndex(h => h.includes('alamat') || h.includes('asal') || h.includes('kota'));
+          let idxEmail = headerRow.findIndex(h => h.includes('email') || h.includes('surel'));
+          let idxNominal = headerRow.findIndex(h => h.includes('total') || h.includes('nominal') || h.includes('donasi') || h.includes('kontribusi'));
+
+          if (idxNama === -1) idxNama = 0;
+          if (idxWa === -1) idxWa = 1;
+          if (idxAlamat === -1) idxAlamat = 2;
+          if (idxEmail === -1) idxEmail = 3;
+          if (idxNominal === -1) idxNominal = 4;
+
+          const parsedList = [];
+          for (let i = 1; i < rows.length; i++) {
+            const r = rows[i];
+            if (!r || r.length === 0 || !r[idxNama]) continue;
+            const nama = String(r[idxNama] || '').trim();
+            if (!nama) continue;
+
+            const no_wa = String(r[idxWa] || '-').trim();
+            const alamat = String(r[idxAlamat] || '-').trim();
+            const email = String(r[idxEmail] || '-').trim();
+            const nom = Number(String(r[idxNominal] || '0').replace(/[^0-9]/g, '')) || 0;
+
+            parsedList.push({ nama, no_wa, alamat, email, total_donasi: nom });
+          }
+
+          this.pendingImportDonaturList = parsedList;
+
+          const cont = document.getElementById('preview-import-donatur-container');
+          const countEl = document.getElementById('preview-donatur-count');
+          const tbody = document.getElementById('tbody-preview-import-donatur');
+          const btnSubmit = document.getElementById('btn-submit-import-donatur');
+
+          if (cont && tbody && countEl) {
+            countEl.innerText = `${parsedList.length} data donatur terdeteksi`;
+            tbody.innerHTML = parsedList.slice(0, 10).map((d, idx) => `
+              <tr>
+                <td>#${idx + 1}</td>
+                <td><strong>${d.nama}</strong></td>
+                <td>${d.no_wa}</td>
+                <td>${d.alamat}</td>
+                <td>Rp ${d.total_donasi.toLocaleString('id-ID')}</td>
+              </tr>
+            `).join('');
+            cont.style.display = 'block';
+          }
+
+          if (btnSubmit) {
+            btnSubmit.disabled = parsedList.length === 0;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Proses & Simpan (${parsedList.length} Donatur)`;
+          }
+        });
+      });
+    }
+
+    if (formImportDonatur) {
+      formImportDonatur.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!this.pendingImportDonaturList || this.pendingImportDonaturList.length === 0) {
+          window.app.showToast('Tidak ada data donatur yang siap diimpor', 'warning');
+          return;
+        }
+
+        const btn = document.getElementById('btn-submit-import-donatur');
+        const orig = btn ? btn.innerHTML : '';
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengimpor...';
+        }
+
+        try {
+          const res = await window.ambulanApi.importDonatur(this.pendingImportDonaturList, this.getCurrentUser()?.nama || 'Admin');
+          if (res && res.success) {
+            window.app.showToast(res.message, 'success');
+            formImportDonatur.reset();
+            this.pendingImportDonaturList = [];
+            window.app.closeModal('modal-import-donatur');
+            await this.loadAdminData();
+          } else {
+            window.app.showToast(res?.message || 'Gagal mengimpor donatur', 'error');
+          }
+        } catch (err) {
+          window.app.showToast('Gagal mengimpor donatur: ' + err.toString(), 'error');
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+          }
+        }
+      });
+    }
+
+    // File & Form Import Donasi Masuk dari Excel
+    const fileImportDonasi = document.getElementById('file-import-donasi');
+    const formImportDonasi = document.getElementById('form-import-donasi');
+    if (fileImportDonasi) {
+      fileImportDonasi.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        this.parseExcelOrCsv(file, (err, rows) => {
+          if (err || !rows || rows.length <= 1) {
+            window.app.showToast('Format file tidak terbaca atau file kosong', 'error');
+            return;
+          }
+
+          const headerRow = rows[0].map(h => String(h || '').trim().toLowerCase());
+          let idxTgl = headerRow.findIndex(h => h.includes('tanggal') || h.includes('tgl') || h.includes('date'));
+          let idxNama = headerRow.findIndex(h => h.includes('nama') || h.includes('donatur'));
+          let idxWa = headerRow.findIndex(h => h.includes('wa') || h.includes('whatsapp') || h.includes('telp') || h.includes('hp'));
+          let idxNominal = headerRow.findIndex(h => h.includes('nominal') || h.includes('jumlah') || h.includes('amount') || h.includes('donasi'));
+          let idxMetode = headerRow.findIndex(h => h.includes('metode') || h.includes('bank') || h.includes('via') || h.includes('pembayaran'));
+          let idxProg = headerRow.findIndex(h => h.includes('program') || h.includes('alokasi') || h.includes('tujuan'));
+          let idxStatus = headerRow.findIndex(h => h.includes('status') || h.includes('verifikasi'));
+          let idxDoa = headerRow.findIndex(h => h.includes('doa') || h.includes('pesan') || h.includes('catatan') || h.includes('keterangan'));
+
+          if (idxTgl === -1) idxTgl = 0;
+          if (idxNama === -1) idxNama = 1;
+          if (idxWa === -1) idxWa = 2;
+          if (idxNominal === -1) idxNominal = 3;
+          if (idxMetode === -1) idxMetode = 4;
+          if (idxProg === -1) idxProg = 5;
+          if (idxStatus === -1) idxStatus = 6;
+          if (idxDoa === -1) idxDoa = 7;
+
+          const defaultStatus = document.getElementById('import-donasi-default-status')?.value || 'Verified';
+
+          const parsedList = [];
+          let grandTotal = 0;
+
+          for (let i = 1; i < rows.length; i++) {
+            const r = rows[i];
+            if (!r || r.length === 0) continue;
+
+            const nama = String(r[idxNama] || '').trim();
+            const nom = Number(String(r[idxNominal] || '0').replace(/[^0-9]/g, '')) || 0;
+            if (!nama && nom <= 0) continue;
+
+            let tgl = String(r[idxTgl] || '').trim();
+            if (!tgl || tgl.length < 8) {
+              tgl = new Date().toISOString().substring(0, 10);
+            } else if (tgl.includes('/')) {
+              const parts = tgl.split('/');
+              if (parts.length === 3) {
+                if (parts[2].length === 4) {
+                  tgl = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+                }
+              }
+            }
+
+            const no_wa = String(r[idxWa] || '-').trim();
+            const metode = String(r[idxMetode] || 'Bank Syariah Indonesia (BSI)').trim();
+            const program = String(r[idxProg] || 'Pengadaan Armada Ambulan').trim();
+            let status = String(r[idxStatus] || defaultStatus).trim();
+            if (!status || !['Verified', 'Pending', 'Rejected'].includes(status)) {
+              status = defaultStatus;
+            }
+            const doa = String(r[idxDoa] || 'Impor dari file Excel').trim();
+
+            parsedList.push({
+              tanggal: tgl,
+              nama: nama || 'Hamba Allah',
+              no_wa: no_wa,
+              nominal: nom,
+              metode_bayar: metode,
+              program: program,
+              status: status,
+              doa_pesan: doa
+            });
+            grandTotal += nom;
+          }
+
+          this.pendingImportDonasiList = parsedList;
+
+          const cont = document.getElementById('preview-import-donasi-container');
+          const countEl = document.getElementById('preview-donasi-count');
+          const totalNomEl = document.getElementById('preview-donasi-total-nominal');
+          const tbody = document.getElementById('tbody-preview-import-donasi');
+          const btnSubmit = document.getElementById('btn-submit-import-donasi');
+
+          if (cont && tbody && countEl && totalNomEl) {
+            countEl.innerText = `${parsedList.length} transaksi donasi terdeteksi`;
+            totalNomEl.innerText = `Total: Rp ${grandTotal.toLocaleString('id-ID')}`;
+            tbody.innerHTML = parsedList.slice(0, 10).map((d, idx) => `
+              <tr>
+                <td>#${idx + 1}</td>
+                <td>${d.tanggal}</td>
+                <td><strong>${d.nama}</strong></td>
+                <td>${d.no_wa}</td>
+                <td style="font-weight: 700; color: #0d7a57;">Rp ${d.nominal.toLocaleString('id-ID')}</td>
+                <td>${d.metode_bayar}</td>
+                <td>${d.program}</td>
+                <td><span class="badge ${d.status === 'Verified' ? 'badge-success' : 'badge-warning'}">${d.status}</span></td>
+              </tr>
+            `).join('');
+            cont.style.display = 'block';
+          }
+
+          if (btnSubmit) {
+            btnSubmit.disabled = parsedList.length === 0;
+            btnSubmit.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Proses & Simpan (${parsedList.length} Donasi Masuk)`;
+          }
+        });
+      });
+    }
+
+    if (formImportDonasi) {
+      formImportDonasi.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!this.pendingImportDonasiList || this.pendingImportDonasiList.length === 0) {
+          window.app.showToast('Tidak ada transaksi donasi yang siap diimpor', 'warning');
+          return;
+        }
+
+        const btn = document.getElementById('btn-submit-import-donasi');
+        const orig = btn ? btn.innerHTML : '';
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengimpor donasi...';
+        }
+
+        try {
+          const res = await window.ambulanApi.importDonasi(this.pendingImportDonasiList, this.getCurrentUser()?.nama || 'Admin');
+          if (res && res.success) {
+            window.app.showToast(res.message, 'success');
+            formImportDonasi.reset();
+            this.pendingImportDonasiList = [];
+            window.app.closeModal('modal-import-donasi');
+            await this.loadAdminData();
+            await window.publicPortal.refreshPublicData();
+          } else {
+            window.app.showToast(res?.message || 'Gagal mengimpor donasi', 'error');
+          }
+        } catch (err) {
+          window.app.showToast('Gagal mengimpor donasi: ' + err.toString(), 'error');
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+          }
         }
       });
     }
