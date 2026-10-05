@@ -399,25 +399,8 @@ class AmbulanApi {
 
     db.donasi_masuk.unshift(newDonasi);
 
-    // Update donatur table
-    if (formData.no_wa && formData.no_wa !== "-") {
-      let donatur = db.donatur.find(d => d.no_wa === formData.no_wa);
-      if (donatur) {
-        donatur.total_donasi += nominal;
-        donatur.frekuensi += 1;
-      } else {
-        db.donatur.push({
-          id: "DTR-" + String(db.donatur.length + 1).padStart(3, '0'),
-          nama: formData.nama || "Hamba Allah",
-          no_wa: formData.no_wa,
-          email: formData.email || "-",
-          alamat: formData.alamat || "-",
-          total_donasi: nominal,
-          frekuensi: 1,
-          created_at: tanggal
-        });
-      }
-    }
+    // Otomatis sinkronkan & akumulasikan data donatur dari seluruh donasi masuk
+    db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
 
     // Audit log
     db.audit_log.unshift({
@@ -594,6 +577,99 @@ class AmbulanApi {
     return { success: false, message: 'Username atau kata sandi tidak cocok!' };
   }
 
+  compileDonaturFromDonasi(donasiList = [], existingDonatur = []) {
+    const map = new Map();
+
+    // 1. Ekstrak data transaksi secara otomatis dari seluruh donasi masuk
+    (donasiList || []).forEach(d => {
+      if (!d) return;
+      const nominal = Number(d.nominal) || 0;
+      const status = String(d.status || '').trim();
+      if (status === 'Rejected') return; // Lewati donasi yang ditolak
+
+      const rawWa = String(d.no_wa || '').trim().replace(/[^0-9]/g, '');
+      const cleanWa = rawWa.startsWith('0') ? '62' + rawWa.substring(1) : rawWa;
+      const donorName = String(d.nama_donatur || d.nama || '').trim() || 'Hamba Allah';
+      const normName = donorName.toLowerCase();
+
+      // Prioritas identifikasi: WhatsApp jika ada, jika tidak nama
+      const key = (cleanWa && cleanWa.length >= 8) ? `wa:${cleanWa}` : `name:${normName}`;
+
+      if (map.has(key)) {
+        const item = map.get(key);
+        item.total_donasi += nominal;
+        item.frekuensi += 1;
+        if (item.nama === 'Hamba Allah' && donorName !== 'Hamba Allah') {
+          item.nama = donorName;
+        } else if (donorName !== 'Hamba Allah' && donorName.length > item.nama.length) {
+          item.nama = donorName;
+        }
+        if ((!item.no_wa || item.no_wa === '-') && d.no_wa && d.no_wa !== '-') {
+          item.no_wa = d.no_wa;
+        }
+        if (!item.donasi_terakhir || (d.tanggal && d.tanggal > item.donasi_terakhir)) {
+          item.donasi_terakhir = d.tanggal;
+          if (d.program) item.program_terakhir = d.program;
+        }
+      } else {
+        const newId = `DTR-${String(map.size + 1).padStart(3, '0')}`;
+        map.set(key, {
+          id: newId,
+          nama: donorName,
+          no_wa: (d.no_wa && d.no_wa !== '-') ? d.no_wa : '-',
+          email: d.email || '-',
+          alamat: d.alamat || '-',
+          total_donasi: nominal,
+          frekuensi: 1,
+          donasi_terakhir: d.tanggal || '',
+          program_terakhir: d.program || ''
+        });
+      }
+    });
+
+    // 2. Padukan dengan metadata yang sudah ada di basis data donatur (seperti alamat, email)
+    (existingDonatur || []).forEach(ex => {
+      if (!ex) return;
+      const rawWa = String(ex.no_wa || '').trim().replace(/[^0-9]/g, '');
+      const cleanWa = rawWa.startsWith('0') ? '62' + rawWa.substring(1) : rawWa;
+      const normName = String(ex.nama || '').trim().toLowerCase();
+      const key = (cleanWa && cleanWa.length >= 8) ? `wa:${cleanWa}` : `name:${normName}`;
+
+      if (map.has(key)) {
+        const item = map.get(key);
+        if (ex.alamat && ex.alamat !== '-' && (!item.alamat || item.alamat === '-')) {
+          item.alamat = ex.alamat;
+        }
+        if (ex.email && ex.email !== '-' && (!item.email || item.email === '-')) {
+          item.email = ex.email;
+        }
+        if (ex.nama && item.nama === 'Hamba Allah' && ex.nama !== 'Hamba Allah') {
+          item.nama = ex.nama;
+        }
+      } else {
+        map.set(key, {
+          id: ex.id || `DTR-${String(map.size + 1).padStart(3, '0')}`,
+          nama: ex.nama || 'Hamba Allah',
+          no_wa: ex.no_wa || '-',
+          email: ex.email || '-',
+          alamat: ex.alamat || '-',
+          total_donasi: Number(ex.total_donasi) || 0,
+          frekuensi: Number(ex.frekuensi) || 0,
+          donasi_terakhir: ex.updated_at || ex.created_at || '',
+          program_terakhir: ''
+        });
+      }
+    });
+
+    // 3. Urutkan berdasarkan total kontribusi tertinggi
+    const result = Array.from(map.values()).sort((a, b) => (b.total_donasi || 0) - (a.total_donasi || 0));
+    result.forEach((d, idx) => {
+      d.id = `DTR-${String(idx + 1).padStart(3, '0')}`;
+    });
+
+    return result;
+  }
+
   async getAdminData() {
     const filterDemo = this.isFilterDemoData();
 
@@ -632,7 +708,8 @@ class AmbulanApi {
 
           const cleanDonasi = filterDemo ? rawDonasi.filter(d => !this.isDemoRecord(d)) : rawDonasi;
           const cleanPengeluaran = filterDemo ? rawPengeluaran.filter(p => !this.isDemoRecord(p)) : rawPengeluaran;
-          const cleanDonatur = filterDemo ? rawDonatur.filter(d => !this.isDemoRecord(d)) : rawDonatur;
+          const initialDonatur = filterDemo ? rawDonatur.filter(d => !this.isDemoRecord(d)) : rawDonatur;
+          const cleanDonatur = this.compileDonaturFromDonasi(cleanDonasi, initialDonatur);
           const cleanLayanan = filterDemo ? rawLayanan.filter(a => !this.isDemoRecord(a)) : rawLayanan;
 
           let totalMasukVerified = 0;
@@ -677,7 +754,18 @@ class AmbulanApi {
             pengeluaran: cleanPengeluaran,
             donatur: cleanDonatur,
             users: json.data.users || [],
-            auditLog: json.data.auditLog || [],
+            auditLog: (json.data.auditLog || []).map(a => {
+              if (a.timestamp && a.user && a.action) return a;
+              const vals = Object.values(a);
+              const keys = Object.keys(a);
+              return {
+                id: a.id || vals[0] || keys[0] || 'AUD-000',
+                timestamp: a.timestamp || vals[1] || keys[1] || '-',
+                user: a.user || vals[2] || keys[2] || 'system',
+                action: a.action || vals[3] || keys[3] || 'ACTIVITY',
+                detail: a.detail || vals[4] || keys[4] || '-'
+              };
+            }),
             layananAmbulan: cleanLayanan,
             settings: json.data.settings || this.getDb().settings
           };
@@ -696,8 +784,13 @@ class AmbulanApi {
 
     const cleanDonasi = filterDemo ? rawDonasi.filter(d => !this.isDemoRecord(d)) : rawDonasi;
     const cleanPengeluaran = filterDemo ? rawPengeluaran.filter(p => !this.isDemoRecord(p)) : rawPengeluaran;
-    const cleanDonatur = filterDemo ? rawDonatur.filter(d => !this.isDemoRecord(d)) : rawDonatur;
+    const initialDonatur = filterDemo ? rawDonatur.filter(d => !this.isDemoRecord(d)) : rawDonatur;
+    const cleanDonatur = this.compileDonaturFromDonasi(cleanDonasi, initialDonatur);
     const cleanLayanan = filterDemo ? rawLayanan.filter(a => !this.isDemoRecord(a)) : rawLayanan;
+
+    // Sinkronkan ke basis data lokal agar selalu terisi otomatis
+    db.donatur = cleanDonatur;
+    this.saveDb(db);
 
     let totalMasukVerified = 0;
     let totalPending = 0;
@@ -781,6 +874,137 @@ class AmbulanApi {
 
     this.saveDb(db);
     return { success: true, message: `Donasi ${id} berhasil di-${status}!` };
+  }
+
+  async addDonasiManual(donationData, adminName) {
+    const admin = adminName || 'Admin';
+    if (this.isOnlineMode()) {
+      try {
+        const res = await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'addDonasiManual', ...donationData, adminName: admin })
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          this.syncLocalDonasiManual(donationData, admin, json.donasiId || json.id);
+          return json;
+        }
+
+        // Graceful fallback jika Apps Script remote belum diperbarui
+        if (json && json.message && json.message.includes('tidak valid')) {
+          console.info('addDonasiManual action belum aktif di Apps Script online, menggunakan submitDonasi fallback...');
+          const submitRes = await fetch(this.getAppsScriptUrl(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'submitDonasi',
+              nama: donationData.nama,
+              no_wa: donationData.no_wa,
+              nominal: donationData.nominal,
+              metode_bayar: donationData.metode_bayar,
+              program: donationData.program,
+              doa_pesan: donationData.doa_pesan,
+              bukti_base64: donationData.bukti_base64 || ''
+            })
+          });
+          const submitJson = await submitRes.json();
+          if (submitJson && submitJson.success && submitJson.donasiId) {
+            const donId = submitJson.donasiId;
+            if (donationData.status === 'Verified') {
+              await fetch(this.getAppsScriptUrl(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                  action: 'verifyDonasi',
+                  id: donId,
+                  status: 'Verified',
+                  adminName: admin,
+                  alasan: 'Input Manual Admin'
+                })
+              });
+            }
+            this.syncLocalDonasiManual(donationData, admin, donId);
+            return {
+              success: true,
+              message: 'Donasi manual berhasil dicatat & disinkronkan ke Google Sheets!',
+              donasiId: donId
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('Apps script addDonasiManual error, fallback to local storage:', e);
+      }
+    }
+
+    return this.syncLocalDonasiManual(donationData, admin);
+  }
+
+  syncLocalDonasiManual(donationData, adminName, existingId = null) {
+    const db = this.getDb();
+    const now = new Date();
+    const id = existingId || ("DON-" + now.getFullYear() +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      String(now.getDate()).padStart(2, '0') + "-" +
+      String(now.getHours()).padStart(2, '0') +
+      String(now.getMinutes()).padStart(2, '0') +
+      String(now.getSeconds()).padStart(2, '0'));
+
+    let tanggal = donationData.tanggal;
+    if (!tanggal) {
+      tanggal = now.toISOString().replace('T', ' ').substring(0, 19);
+    } else if (tanggal.length === 10) {
+      tanggal += " " + now.toTimeString().substring(0, 8);
+    }
+
+    const nominal = Number(donationData.nominal) || 0;
+    const status = donationData.status || "Verified";
+    const verifiedBy = status === "Verified" ? (adminName || "Admin") : "";
+    const verifiedAt = status === "Verified" ? now.toISOString().replace('T', ' ').substring(0, 19) : "";
+
+    const newDonasi = {
+      id: id,
+      tanggal: tanggal,
+      nama_donatur: donationData.nama || "Hamba Allah",
+      no_wa: donationData.no_wa || "-",
+      nominal: nominal,
+      metode_bayar: donationData.metode_bayar || "Tunai / Cash",
+      program: donationData.program || "Pengadaan Armada Ambulan",
+      doa_pesan: donationData.doa_pesan || "Donasi manual dicatat oleh admin",
+      bukti_transfer: donationData.bukti_base64 || "assets/logo.png",
+      status: status,
+      verified_by: verifiedBy,
+      verified_at: verifiedAt,
+      alasan_tolak: ""
+    };
+
+    if (!db.donasi_masuk) db.donasi_masuk = [];
+    const existingIdx = db.donasi_masuk.findIndex(d => d.id === id);
+    if (existingIdx >= 0) {
+      db.donasi_masuk[existingIdx] = newDonasi;
+    } else {
+      db.donasi_masuk.unshift(newDonasi);
+    }
+
+    // Otomatis sinkronkan & akumulasikan data donatur dari seluruh donasi masuk
+    db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
+
+    // Catat audit log
+    if (!db.audit_log) db.audit_log = [];
+    db.audit_log.unshift({
+      id: "AUD-" + Date.now(),
+      timestamp: now.toISOString().replace('T', ' ').substring(0, 19),
+      user: adminName || "Admin",
+      action: "ADD_DONASI_MANUAL",
+      detail: `Donasi manual Rp ${nominal.toLocaleString('id-ID')} (${newDonasi.nama_donatur}) dicatat dengan status ${status}`
+    });
+
+    this.saveDb(db);
+    return {
+      success: true,
+      message: `Donasi manual senilai Rp ${nominal.toLocaleString('id-ID')} berhasil dicatat!`,
+      donasiId: id
+    };
   }
 
   async addPengeluaran(expenseData, adminName) {

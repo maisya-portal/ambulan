@@ -9,9 +9,11 @@
   <meta name="description" content="Aplikasi resmi pengelolaan dan transparansi donasi serta layanan armada ambulan medis gratis santri dan kaum dhuafa Pondok Pesantren Imam Syafi'i Brebes.">
   <meta name="theme-color" content="#0d7a57">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="assets/favicon.png?v=4">
-  <link rel="shortcut icon" href="assets/favicon.ico?v=4">
-  <link rel="apple-touch-icon" href="assets/icon-192.png?v=4">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png?v=5">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icon-16.png?v=5">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icon-48.png?v=5">
+  <link rel="shortcut icon" href="assets/favicon.ico?v=5">
+  <link rel="apple-touch-icon" href="assets/icon-192.png?v=5">
 
   <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -924,9 +926,14 @@
 
         <!-- Antrean Cepat Verifikasi Donasi -->
         <div class="card" style="margin-bottom: 2rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
             <h3 style="color: #064e3b;"><i class="fa-solid fa-clock-rotate-left text-warning"></i> Antrean Verifikasi Donasi Masuk</h3>
-            <button class="btn btn-sm btn-outline" onclick="window.app.navigateTo('admin-donasi')">Lihat Semua Donasi</button>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-sm btn-primary" onclick="window.adminPortal ? window.adminPortal.openTambahDonasiModal() : window.app.openModal('modal-tambah-donasi')">
+                <i class="fa-solid fa-plus"></i> Catat Donasi Manual
+              </button>
+              <button class="btn btn-sm btn-outline" onclick="window.app.navigateTo('admin-donasi')">Lihat Semua Donasi</button>
+            </div>
           </div>
           <div id="dashboard-quick-pending">
             <!-- Diisi secara dinamis -->
@@ -939,11 +946,24 @@
         <div class="admin-header">
           <div>
             <h2 style="font-size: 1.5rem; color: #064e3b;">Data Donatur Ambulan</h2>
-            <p style="color: #64748b; font-size: 0.9rem;">Daftar dermawan dan donatur setia Pondok Pesantren Imam Syafi'i Brebes.</p>
+            <p style="color: #64748b; font-size: 0.9rem;">Daftar dermawan dan donatur setia Pondok Pesantren Imam Syafi'i Brebes (terisi otomatis dari donasi masuk).</p>
           </div>
-          <button class="btn btn-primary" onclick="window.adminPortal.exportCsv('donasi')">
-            <i class="fa-solid fa-file-csv"></i> Export CSV
+          <button class="btn btn-primary" onclick="window.adminPortal.exportCsv('donatur')">
+            <i class="fa-solid fa-file-csv"></i> Export CSV Donatur
           </button>
+        </div>
+
+        <!-- Toolbar Pencarian & Info Donatur -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1rem 1.5rem;">
+          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="badge badge-success" id="badge-total-donatur-count" style="font-size: 0.85rem; padding: 0.4rem 0.75rem;">0 Donatur Terdaftar</span>
+              <span style="font-size: 0.82rem; color: #64748b;"><i class="fa-solid fa-arrows-rotate"></i> Otomatis terakumulasi dari seluruh donasi masuk</span>
+            </div>
+            <div style="flex: 1; max-width: 320px;">
+              <input type="text" id="search-donatur-input" class="form-input" placeholder="Cari nama, WhatsApp, alamat..." style="padding: 0.45rem 0.85rem; font-size: 0.9rem;">
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -957,6 +977,8 @@
                   <th>Alamat/Asal</th>
                   <th>Total Kontribusi</th>
                   <th>Frekuensi</th>
+                  <th>Donasi Terakhir</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody id="table-body-admin-donatur">
@@ -974,6 +996,9 @@
             <h2 style="font-size: 1.5rem; color: #064e3b;">Manajemen Donasi Masuk</h2>
             <p style="color: #64748b; font-size: 0.9rem;">Periksa bukti transfer, verifikasi donasi, dan kirim kwitansi WhatsApp otomatis.</p>
           </div>
+          <button class="btn btn-primary" onclick="window.adminPortal ? window.adminPortal.openTambahDonasiModal() : window.app.openModal('modal-tambah-donasi')">
+            <i class="fa-solid fa-plus"></i> Catat Donasi Manual
+          </button>
         </div>
 
         <!-- Filter and Search Toolbar -->
@@ -1020,7 +1045,7 @@
             <h2 style="font-size: 1.5rem; color: #064e3b;">Pengeluaran Operasional Ambulan</h2>
             <p style="color: #64748b; font-size: 0.9rem;">Pencatatan biaya bahan bakar, servis berkala, pengisian oksigen medis, dan insentif.</p>
           </div>
-          <button class="btn btn-primary" onclick="window.app.openModal('modal-tambah-pengeluaran')">
+          <button class="btn btn-primary" onclick="window.adminPortal ? window.adminPortal.openTambahPengeluaranModal() : window.app.openModal('modal-tambah-pengeluaran')">
             <i class="fa-solid fa-plus"></i> Catat Pengeluaran Baru
           </button>
         </div>
@@ -1503,6 +1528,83 @@
     </div>
   </div>
 
+  <!-- Modal: Tambah Donasi Manual -->
+  <div class="modal-backdrop" id="modal-tambah-donasi">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-hand-holding-dollar text-primary"></i> Catat Donasi Masuk Manual</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="form-tambah-donasi">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tanggal Donasi:</label>
+            <input type="date" id="donasi-manual-tanggal" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nama Donatur:</label>
+            <input type="text" id="donasi-manual-nama" class="form-input" placeholder="Contoh: H. Ahmad Subarjo / Hamba Allah" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nomor WhatsApp (Opsional untuk Kirim Kwitansi):</label>
+            <input type="tel" id="donasi-manual-wa" class="form-input" placeholder="Contoh: 081234567890">
+            <small style="color: #64748b; font-size: 0.75rem;">Digunakan untuk mengirim kwitansi tanda terima resmi via WhatsApp.</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nominal Donasi (Rp):</label>
+            <input type="text" id="donasi-manual-nominal" class="form-input" placeholder="Contoh: 500.000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Metode Penerimaan:</label>
+            <select id="donasi-manual-metode" class="form-select" required>
+              <option value="Tunai / Cash (Kantor)">Tunai / Cash (Langsung ke Kantor)</option>
+              <option value="Bank Syariah Indonesia (BSI)">Bank Syariah Indonesia (BSI)</option>
+              <option value="Bank Muamalat">Bank Muamalat</option>
+              <option value="QRIS / E-Wallet">QRIS / E-Wallet Yayasan</option>
+              <option value="Transfer Bank Lain">Transfer Bank Lain</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Alokasi Program Donasi:</label>
+            <select id="donasi-manual-program" class="form-select" required>
+              <option value="Pengadaan Armada Ambulan">Pengadaan Armada Ambulan</option>
+              <option value="Operasional & BBM Ambulan">Operasional & Bahan Bakar Minyak (BBM)</option>
+              <option value="Peralatan Medis & Oksigen">Peralatan Medis & Tabung Oksigen</option>
+              <option value="Sedekah Bebas / Terdesak">Sedekah Bebas / Kebutuhan Darurat</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status Verifikasi Donasi:</label>
+            <select id="donasi-manual-status" class="form-select" required>
+              <option value="Verified" selected>Terverifikasi Sah (Langsung Masuk Saldo Kas)</option>
+              <option value="Pending">Menunggu Verifikasi (Pending)</option>
+            </select>
+            <small style="color: #64748b; font-size: 0.75rem;">Pilih "Terverifikasi Sah" jika dana sudah diterima tunai atau masuk mutasi rekening.</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Doa / Pesan / Catatan (Opsional):</label>
+            <textarea id="donasi-manual-doa" class="form-input" rows="2" placeholder="Catatan atau doa dari donatur bila ada..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lampiran Bukti Transfer / Kwitansi (Opsional):</label>
+            <input type="file" id="donasi-manual-bukti" class="form-input" accept="image/*">
+            <div id="donasi-manual-bukti-preview-container" style="display: none; margin-top: 0.75rem; text-align: center; background: #f8fafc; padding: 0.75rem; border-radius: 8px; border: 1px dashed #cbd5e1;">
+              <img id="donasi-manual-bukti-preview" src="" alt="Pratinjau Bukti" style="max-height: 160px; max-width: 100%; object-fit: contain; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <div style="margin-top: 0.5rem;">
+                <button type="button" class="btn btn-sm btn-danger" id="btn-hapus-bukti-manual"><i class="fa-solid fa-trash"></i> Hapus Foto</button>
+              </div>
+            </div>
+            <small style="color: #64748b; font-size: 0.75rem;">Format JPG/PNG (maks 5MB).</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Simpan Donasi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Tambah Pengeluaran -->
   <div class="modal-backdrop" id="modal-tambah-pengeluaran">
     <div class="modal-dialog">
@@ -1818,9 +1920,9 @@
   </nav>
 
   <!-- Script Modules -->
-  <script src="js/api.js?v=6"></script>
-  <script src="js/public.js?v=6"></script>
-  <script src="js/admin.js?v=6"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/api.js?v=7"></script>
+  <script src="js/public.js?v=7"></script>
+  <script src="js/admin.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>

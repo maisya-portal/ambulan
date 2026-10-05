@@ -13,6 +13,7 @@ class AdminPortal {
     this.currentUser = null;
     this.adminData = null;
     this.currentVerifyDonasi = null;
+    this.currentDonasiManualBukti = null;
     this.activeFilterStatus = 'all';
     this.initEventListeners();
   }
@@ -182,9 +183,27 @@ class AdminPortal {
     const tbody = document.getElementById('table-body-admin-donatur');
     if (!tbody) return;
 
-    const list = this.adminData.donatur;
+    let list = this.adminData.donatur;
+    const searchQuery = (document.getElementById('search-donatur-input')?.value || '').toLowerCase().trim();
+    if (searchQuery) {
+      list = list.filter(d =>
+        String(d.nama || '').toLowerCase().includes(searchQuery) ||
+        String(d.no_wa || '').includes(searchQuery) ||
+        String(d.alamat || '').toLowerCase().includes(searchQuery) ||
+        String(d.id || '').toLowerCase().includes(searchQuery)
+      );
+    }
+
+    const badgeTotal = document.getElementById('badge-total-donatur-count');
+    if (badgeTotal) {
+      badgeTotal.innerText = `${(this.adminData.donatur || []).length} Donatur Terdaftar`;
+    }
+
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 2rem; color: #64748b;">Belum ada donatur tercatat</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2.5rem; color: #64748b;">
+        <i class="fa-solid fa-users" style="font-size: 2rem; opacity: 0.3; margin-bottom: 0.5rem; display: block;"></i>
+        ${searchQuery ? 'Tidak ada data donatur yang sesuai dengan pencarian.' : 'Belum ada donatur tercatat. Setiap donasi masuk otomatis mencatat profil donatur di sini.'}
+      </td></tr>`;
       return;
     }
 
@@ -192,21 +211,58 @@ class AdminPortal {
       const rawWa = String(d.no_wa || '').trim();
       let cleanWa = rawWa.replace(/[^0-9]/g, '');
       if (cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.substring(1);
+      const safeNama = (d.nama || 'Hamba Allah').replace(/'/g, "\\'");
+      const safeWa = (rawWa || '-').replace(/'/g, "\\'");
+
+      const waPesan = cleanWa ? encodeURIComponent(
+        `*Yth. Bapak/Ibu ${d.nama}*\n\n` +
+        `Assalamu'alaikum Warahmatullahi Wabarakatuh.\n\n` +
+        `Semoga Bapak/Ibu senantiasa dalam limpahan taufik dan kesehatan dari Allah Subhanahu wa Ta'ala.\n` +
+        `Kami dari Pengurus Layanan Ambulan Pondok Pesantren Imam Syafi'i Brebes mengucapkan *Jazakumullahu Khairan Katsiran* atas sedekah jariyah yang telah disalurkan.\n\n` +
+        `Semoga Allah membalasnya dengan rezeki yang berkah dan pahala yang berlipat ganda. Aamiin.\n\n` +
+        `*Layanan Ambulan Ponpes Imam Syafi'i Brebes*`
+      ) : '';
 
       return `
         <tr>
-          <td>#${i + 1}</td>
-          <td><strong>${d.nama || '-'}</strong></td>
+          <td><strong style="color: #64748b;">#${i + 1}</strong></td>
           <td>
-            ${cleanWa ? `
-              <a href="https://wa.me/${cleanWa}" target="_blank" style="color: #10b981; font-weight: 600;">
-                <i class="fa-brands fa-whatsapp"></i> ${rawWa}
-              </a>
-            ` : (rawWa || '-')}
+            <div style="font-weight: 700; color: #064e3b; font-size: 0.95rem;">${d.nama || 'Hamba Allah'}</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;">ID: ${d.id || '-'}</div>
           </td>
-          <td>${d.alamat || '-'}</td>
-          <td style="font-weight: 800; color: #0d7a57;">${formatRp(d.total_donasi)}</td>
-          <td><span class="badge badge-primary">${d.frekuensi || 1}x Donasi</span></td>
+          <td>
+            ${cleanWa && cleanWa.length >= 8 ? `
+              <a href="https://wa.me/${cleanWa}" target="_blank" class="btn btn-sm btn-outline" style="color: #059669; border-color: #a7f3d0; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem;">
+                <i class="fa-brands fa-whatsapp" style="font-size: 0.95rem;"></i> ${rawWa}
+              </a>
+            ` : `<span style="color: #94a3b8;">${rawWa || '-'}</span>`}
+          </td>
+          <td>
+            <span style="font-size: 0.85rem; color: #475569;">${d.alamat && d.alamat !== '-' ? d.alamat : 'Brebes & Sekitarnya'}</span>
+          </td>
+          <td style="font-weight: 800; color: #0d7a57; font-size: 0.95rem;">
+            ${formatRp(d.total_donasi)}
+          </td>
+          <td>
+            <span class="badge badge-success" style="font-size: 0.8rem; font-weight: 600;">
+              ${d.frekuensi || 1}x Donasi
+            </span>
+          </td>
+          <td style="font-size: 0.82rem; color: #64748b; white-space: nowrap;">
+            ${d.donasi_terakhir ? d.donasi_terakhir.substring(0, 10) : '-'}
+          </td>
+          <td>
+            <div style="display: flex; gap: 0.35rem;">
+              <button class="btn btn-sm btn-primary" title="Catat Donasi Baru untuk Donatur ini" onclick="window.adminPortal.openTambahDonasiModal('${safeNama}', '${safeWa}')" style="padding: 0.25rem 0.55rem; font-size: 0.8rem;">
+                <i class="fa-solid fa-plus"></i> Donasi
+              </button>
+              ${cleanWa && cleanWa.length >= 8 ? `
+                <a href="https://wa.me/${cleanWa}?text=${waPesan}" target="_blank" class="btn btn-sm btn-gold" title="Kirim Pesan Terima Kasih via WhatsApp" style="padding: 0.25rem 0.55rem; font-size: 0.8rem;">
+                  <i class="fa-solid fa-paper-plane"></i>
+                </a>
+              ` : ''}
+            </div>
+          </td>
         </tr>
       `;
     }).join('');
@@ -380,14 +436,44 @@ class AdminPortal {
     const tbody = document.getElementById('table-body-audit-log');
     if (!tbody) return;
 
-    tbody.innerHTML = (this.adminData.auditLog || []).map(a => `
-      <tr>
-        <td style="white-space: nowrap; font-size: 0.82rem;">${a.timestamp}</td>
-        <td><strong style="color: #0d7a57;">${a.user}</strong></td>
-        <td><span class="badge badge-primary">${a.action}</span></td>
-        <td>${a.detail}</td>
-      </tr>
-    `).join('');
+    const list = this.adminData.auditLog || [];
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">Belum ada catatan jejak audit</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = list.map(a => {
+      let timestamp = a.timestamp || a.waktu || a.tanggal || a.created_at;
+      let user = a.user || a.pengguna || a.admin || a.nama;
+      let action = a.action || a.tindakan || a.aksi;
+      let detail = a.detail || a.rincian || a.keterangan || a.catatan || a.deskripsi;
+
+      // Robust fallback jika baris pertama sheet tertimpa data sehingga key berisi nilai data
+      if (!timestamp && !user && !action) {
+        const vals = Object.values(a);
+        const keys = Object.keys(a);
+        if (vals.length >= 4) {
+          timestamp = vals[1] || keys[1];
+          user = vals[2] || keys[2];
+          action = vals[3] || keys[3];
+          detail = vals[4] || keys[4];
+        }
+      }
+
+      const timeStr = timestamp ? String(timestamp) : '-';
+      const userStr = user ? String(user) : 'system';
+      const actionStr = action ? String(action).toUpperCase() : 'ACTIVITY';
+      const detailStr = detail ? String(detail) : '-';
+
+      return `
+        <tr>
+          <td style="white-space: nowrap; font-size: 0.82rem; color: #475569;">${timeStr}</td>
+          <td><strong style="color: #0d7a57;">${userStr}</strong></td>
+          <td><span class="badge badge-primary">${actionStr}</span></td>
+          <td style="color: #334155;">${detailStr}</td>
+        </tr>
+      `;
+    }).join('');
   }
 
   renderLaporanTab() {
@@ -646,6 +732,39 @@ class AdminPortal {
     }
   }
 
+  openTambahDonasiModal(donorNama = '', donorWa = '') {
+    const formDonasi = document.getElementById('form-tambah-donasi');
+    if (formDonasi) formDonasi.reset();
+    const tglInput = document.getElementById('donasi-manual-tanggal');
+    if (tglInput) {
+      tglInput.value = new Date().toISOString().substring(0, 10);
+    }
+    if (donorNama) {
+      const namaInput = document.getElementById('donasi-manual-nama');
+      if (namaInput) namaInput.value = donorNama;
+    }
+    if (donorWa && donorWa !== '-') {
+      const waInput = document.getElementById('donasi-manual-wa');
+      if (waInput) waInput.value = donorWa;
+    }
+    this.currentDonasiManualBukti = null;
+    const previewCont = document.getElementById('donasi-manual-bukti-preview-container');
+    if (previewCont) previewCont.style.display = 'none';
+    const previewImg = document.getElementById('donasi-manual-bukti-preview');
+    if (previewImg) previewImg.src = '';
+    window.app.openModal('modal-tambah-donasi');
+  }
+
+  openTambahPengeluaranModal() {
+    const formExp = document.getElementById('form-tambah-pengeluaran');
+    if (formExp) formExp.reset();
+    const tglInput = document.getElementById('exp-tanggal');
+    if (tglInput) {
+      tglInput.value = new Date().toISOString().substring(0, 10);
+    }
+    window.app.openModal('modal-tambah-pengeluaran');
+  }
+
   openVerifyModal(donasiId) {
     if (!this.adminData || !this.adminData.donasi) return;
     const d = this.adminData.donasi.find(x => x.id === donasiId);
@@ -775,6 +894,12 @@ class AdminPortal {
       (this.adminData.pengeluaran || []).forEach(p => {
         csvContent += `"${p.id}","${p.tanggal}","${p.kategori}","${p.deskripsi}",${p.nominal},"${p.pic}"\n`;
       });
+    } else if (type === 'donatur') {
+      filename = `data-donatur-ambulan-${new Date().toISOString().substring(0, 10)}.csv`;
+      csvContent += "ID,Nama Donatur,No WA,Alamat,Total Kontribusi,Frekuensi Donasi,Donasi Terakhir\n";
+      (this.adminData.donatur || []).forEach(d => {
+        csvContent += `"${d.id}","${d.nama}","${String(d.no_wa || '-')}","${d.alamat || '-'}","${d.total_donasi}","${d.frekuensi}","${d.donasi_terakhir || '-'}"\n`;
+      });
     }
 
     const encodedUri = encodeURI(csvContent);
@@ -899,6 +1024,12 @@ class AdminPortal {
       searchInput.addEventListener('input', () => this.renderDonasiMasuk());
     }
 
+    // Search Donatur
+    const searchDonaturInput = document.getElementById('search-donatur-input');
+    if (searchDonaturInput) {
+      searchDonaturInput.addEventListener('input', () => this.renderDataDonatur());
+    }
+
     // Filter Status Donasi Tabs
     const filterButtons = document.querySelectorAll('.filter-donasi-btn');
     filterButtons.forEach(btn => {
@@ -910,9 +1041,140 @@ class AdminPortal {
       });
     });
 
+    // Form Tambah Donasi Manual
+    const formTambahDonasi = document.getElementById('form-tambah-donasi');
+    if (formTambahDonasi) {
+      // Live format rupiah untuk nominal donasi manual
+      const donasiNominalInput = document.getElementById('donasi-manual-nominal');
+      if (donasiNominalInput) {
+        donasiNominalInput.addEventListener('input', (e) => {
+          const raw = e.target.value.replace(/[^0-9]/g, '');
+          e.target.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+        });
+      }
+
+      // Input file bukti transfer / kwitansi manual
+      const inputBuktiManual = document.getElementById('donasi-manual-bukti');
+      const previewCont = document.getElementById('donasi-manual-bukti-preview-container');
+      const previewImg = document.getElementById('donasi-manual-bukti-preview');
+      const btnHapusBukti = document.getElementById('btn-hapus-bukti-manual');
+
+      if (inputBuktiManual) {
+        inputBuktiManual.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+              window.app.showToast('Ukuran foto bukti donasi maksimal 5MB', 'error');
+              inputBuktiManual.value = '';
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              this.currentDonasiManualBukti = event.target.result;
+              if (previewImg && previewCont) {
+                previewImg.src = event.target.result;
+                previewCont.style.display = 'block';
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      if (btnHapusBukti) {
+        btnHapusBukti.addEventListener('click', () => {
+          this.currentDonasiManualBukti = null;
+          if (inputBuktiManual) inputBuktiManual.value = '';
+          if (previewCont) previewCont.style.display = 'none';
+          if (previewImg) previewImg.src = '';
+        });
+      }
+
+      formTambahDonasi.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tanggal = document.getElementById('donasi-manual-tanggal')?.value;
+        const nama = document.getElementById('donasi-manual-nama')?.value.trim();
+        const no_wa = document.getElementById('donasi-manual-wa')?.value.trim();
+        const nominal = Number((document.getElementById('donasi-manual-nominal')?.value || '').replace(/[^0-9]/g, '')) || 0;
+        const metode_bayar = document.getElementById('donasi-manual-metode')?.value;
+        const program = document.getElementById('donasi-manual-program')?.value;
+        const status = document.getElementById('donasi-manual-status')?.value || 'Verified';
+        const doa_pesan = document.getElementById('donasi-manual-doa')?.value.trim();
+
+        if (!nama) {
+          window.app.showToast('Harap masukkan nama donatur', 'warning');
+          return;
+        }
+
+        if (nominal <= 0) {
+          window.app.showToast('Harap masukkan nominal donasi yang sah (> Rp 0)', 'warning');
+          return;
+        }
+
+        const submitBtn = formTambahDonasi.querySelector('button[type="submit"]');
+        const origBtnText = submitBtn ? submitBtn.innerHTML : 'Simpan Donasi';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+        }
+
+        try {
+          const res = await window.ambulanApi.addDonasiManual({
+            tanggal: tanggal,
+            nama: nama,
+            no_wa: no_wa || '-',
+            nominal: nominal,
+            metode_bayar: metode_bayar,
+            program: program,
+            status: status,
+            doa_pesan: doa_pesan || 'Donasi dicatat manual oleh admin',
+            bukti_base64: this.currentDonasiManualBukti || ''
+          }, this.getCurrentUser()?.nama || 'Admin');
+
+          if (res && res.success) {
+            window.app.showToast(res.message || 'Donasi manual berhasil dicatat!', 'success');
+            formTambahDonasi.reset();
+            this.currentDonasiManualBukti = null;
+            if (previewCont) previewCont.style.display = 'none';
+            if (previewImg) previewImg.src = '';
+            window.app.closeModal('modal-tambah-donasi');
+
+            await this.loadAdminData();
+            await window.publicPortal.refreshPublicData();
+
+            // Jika status Verified dan ada nomor WhatsApp, tawarkan pengiriman kwitansi
+            if (status === 'Verified' && no_wa && no_wa !== '-' && res.donasiId) {
+              setTimeout(() => {
+                if (confirm(`Donasi ${res.donasiId} berhasil dicatat sebagai TERVERIFIKASI.\n\nApakah Anda ingin langsung membuka WhatsApp untuk mengirim Kwitansi Tanda Terima resmi ke donatur (${nama})?`)) {
+                  this.sendKwitansiWa(res.donasiId);
+                }
+              }, 400);
+            }
+          } else {
+            window.app.showToast(res?.message || 'Gagal menyimpan donasi manual', 'error');
+          }
+        } catch (err) {
+          window.app.showToast('Gagal mencatat donasi manual: ' + err.toString(), 'error');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origBtnText;
+          }
+        }
+      });
+    }
+
     // Form Tambah Pengeluaran
     const formPengeluaran = document.getElementById('form-tambah-pengeluaran');
     if (formPengeluaran) {
+      // Live format rupiah untuk nominal pengeluaran
+      const expNominalInput = document.getElementById('exp-nominal');
+      if (expNominalInput) {
+        expNominalInput.addEventListener('input', (e) => {
+          const raw = e.target.value.replace(/[^0-9]/g, '');
+          e.target.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+        });
+      }
       formPengeluaran.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = {

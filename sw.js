@@ -1,4 +1,4 @@
-const CACHE_NAME = 'maisya-ambulan-v3';
+const CACHE_NAME = 'maisya-ambulan-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,8 +12,13 @@ const ASSETS_TO_CACHE = [
   './assets/logo.svg',
   './assets/logo-ambulan.png',
   './assets/logo-ponpes.png',
+  './assets/icon-16.png',
+  './assets/icon-32.png',
+  './assets/icon-48.png',
   './assets/icon-192.png',
   './assets/icon-512.png',
+  './assets/icon-maskable-192.png',
+  './assets/icon-maskable-512.png',
   './assets/favicon.png',
   './assets/favicon.ico'
 ];
@@ -53,6 +58,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Khusus navigasi halaman utama (index.html): Gunakan Network-First agar update UI selalu langsung tampil
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        return caches.match('./index.html') || caches.match('/');
+      })
+    );
+    return;
+  }
+
+  // Untuk file statis lainnya: Cache-First dengan background refresh
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -67,11 +89,6 @@ self.addEventListener('fetch', (event) => {
           cache.put(event.request, responseToCache);
         });
         return networkResponse;
-      }).catch(() => {
-        // Fallback jika offline dan request halaman utama
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
       });
     })
   );

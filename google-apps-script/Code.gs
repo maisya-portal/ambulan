@@ -229,6 +229,9 @@ function doPost(e) {
       case "verifyDonasi":
         responseData = verifyDonasi(data);
         break;
+      case "addDonasiManual":
+        responseData = addDonasiManual(data);
+        break;
       case "addPengeluaran":
         responseData = addPengeluaran(data);
         break;
@@ -375,27 +378,16 @@ function submitDonasi(data) {
   ];
   donasiSheet.appendRow(row);
 
-  // Update atau tambah data donatur
-  if (donaturSheet && no_wa && no_wa !== "-") {
-    const dRows = donaturSheet.getDataRange().getValues();
-    let found = false;
-    for (let i = 1; i < dRows.length; i++) {
-      if (String(dRows[i][2]).trim() === String(no_wa).trim()) {
-        const curTotal = Number(dRows[i][5]) || 0;
-        const curFreq = Number(dRows[i][6]) || 0;
-        donaturSheet.getRange(i + 1, 6).setValue(curTotal + nominal);
-        donaturSheet.getRange(i + 1, 7).setValue(curFreq + 1);
-        donaturSheet.getRange(i + 1, 9).setValue(new Date().toISOString());
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      const dId = "DTR-" + (dRows.length);
-      donaturSheet.appendRow([
-        dId, nama, no_wa, data.email || "-", data.alamat || "-", nominal, 1, new Date().toISOString(), new Date().toISOString()
-      ]);
-    }
+  // Update atau tambah data donatur otomatis
+  if (donaturSheet) {
+    updateOrAddDonatur(donaturSheet, {
+      nama: nama,
+      no_wa: no_wa,
+      email: data.email || "-",
+      alamat: data.alamat || "-",
+      nominal: nominal,
+      tanggal: tanggal
+    });
   }
 
   logAudit("PUBLIC", "SUBMIT_DONASI", `Donasi baru Rp ${nominal} diajukan oleh ${nama} (${no_wa})`);
@@ -492,6 +484,146 @@ function loginAdmin(username, password) {
   return { success: false, message: "Username atau password salah!" };
 }
 
+function updateOrAddDonatur(donaturSheet, info) {
+  if (!donaturSheet) return;
+  const dRows = donaturSheet.getDataRange().getValues();
+  const rawWa = String(info.no_wa || '').trim().replace(/[^0-9]/g, '');
+  const cleanWa = rawWa.indexOf('0') === 0 ? '62' + rawWa.substring(1) : rawWa;
+  const normName = String(info.nama || 'Hamba Allah').trim().toLowerCase();
+
+  let found = false;
+  for (let i = 1; i < dRows.length; i++) {
+    const rowWa = String(dRows[i][2] || '').trim().replace(/[^0-9]/g, '');
+    const cleanRowWa = rowWa.indexOf('0') === 0 ? '62' + rowWa.substring(1) : rowWa;
+    const rowName = String(dRows[i][1] || '').trim().toLowerCase();
+
+    const isMatch = (cleanWa && cleanWa.length >= 8 && cleanRowWa && cleanRowWa.length >= 8)
+      ? (cleanWa === cleanRowWa)
+      : (normName === rowName);
+
+    if (isMatch) {
+      const curTotal = Number(dRows[i][5]) || 0;
+      const curFreq = Number(dRows[i][6]) || 0;
+      donaturSheet.getRange(i + 1, 6).setValue(curTotal + (Number(info.nominal) || 0));
+      donaturSheet.getRange(i + 1, 7).setValue(curFreq + 1);
+      donaturSheet.getRange(i + 1, 9).setValue(new Date().toISOString());
+      if (String(dRows[i][1]).trim() === 'Hamba Allah' && info.nama && info.nama !== 'Hamba Allah') {
+        donaturSheet.getRange(i + 1, 2).setValue(info.nama);
+      }
+      if ((!rowWa || rowWa === '-') && info.no_wa && info.no_wa !== '-') {
+        donaturSheet.getRange(i + 1, 3).setValue(info.no_wa);
+      }
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    const dId = "DTR-" + String(dRows.length).padStart(3, '0');
+    donaturSheet.appendRow([
+      dId,
+      info.nama || "Hamba Allah",
+      info.no_wa || "-",
+      info.email || "-",
+      info.alamat || "-",
+      Number(info.nominal) || 0,
+      1,
+      new Date().toISOString(),
+      new Date().toISOString()
+    ]);
+  }
+}
+
+function compileDonaturList(donasiList, rawDonaturList) {
+  const map = {};
+  const mapKeys = [];
+
+  // 1. Akumulasikan seluruh transaksi donasi masuk
+  (donasiList || []).forEach(d => {
+    if (!d) return;
+    const nominal = Number(d.nominal) || 0;
+    const status = String(d.status || '').trim();
+    if (status === 'Rejected') return;
+
+    let rawWa = String(d.no_wa || '').trim().replace(/[^0-9]/g, '');
+    let cleanWa = rawWa.indexOf('0') === 0 ? '62' + rawWa.substring(1) : rawWa;
+    const donorName = String(d.nama_donatur || d.nama || '').trim() || 'Hamba Allah';
+    const normName = donorName.toLowerCase();
+
+    const key = (cleanWa && cleanWa.length >= 8) ? ('wa:' + cleanWa) : ('name:' + normName);
+
+    if (map[key]) {
+      map[key].total_donasi += nominal;
+      map[key].frekuensi += 1;
+      if (map[key].nama === 'Hamba Allah' && donorName !== 'Hamba Allah') {
+        map[key].nama = donorName;
+      } else if (donorName !== 'Hamba Allah' && donorName.length > map[key].nama.length) {
+        map[key].nama = donorName;
+      }
+      if ((!map[key].no_wa || map[key].no_wa === '-') && d.no_wa && d.no_wa !== '-') {
+        map[key].no_wa = d.no_wa;
+      }
+      if (!map[key].updated_at || (d.tanggal && d.tanggal > map[key].updated_at)) {
+        map[key].updated_at = d.tanggal;
+      }
+    } else {
+      mapKeys.push(key);
+      map[key] = {
+        id: 'DTR-' + String(mapKeys.length).padStart(3, '0'),
+        nama: donorName,
+        no_wa: (d.no_wa && d.no_wa !== '-') ? d.no_wa : '-',
+        email: d.email || '-',
+        alamat: d.alamat || '-',
+        total_donasi: nominal,
+        frekuensi: 1,
+        created_at: d.tanggal || Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss'),
+        updated_at: d.tanggal || Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss')
+      };
+    }
+  });
+
+  // 2. Padukan metadata tambahan dari sheet donatur
+  (rawDonaturList || []).forEach(ex => {
+    if (!ex) return;
+    let rawWa = String(ex.no_wa || '').trim().replace(/[^0-9]/g, '');
+    let cleanWa = rawWa.indexOf('0') === 0 ? '62' + rawWa.substring(1) : rawWa;
+    const normName = String(ex.nama || '').trim().toLowerCase();
+    const key = (cleanWa && cleanWa.length >= 8) ? ('wa:' + cleanWa) : ('name:' + normName);
+
+    if (map[key]) {
+      if (ex.alamat && ex.alamat !== '-' && (!map[key].alamat || map[key].alamat === '-')) {
+        map[key].alamat = ex.alamat;
+      }
+      if (ex.email && ex.email !== '-' && (!map[key].email || map[key].email === '-')) {
+        map[key].email = ex.email;
+      }
+      if (ex.nama && map[key].nama === 'Hamba Allah' && ex.nama !== 'Hamba Allah') {
+        map[key].nama = ex.nama;
+      }
+    } else {
+      mapKeys.push(key);
+      map[key] = {
+        id: ex.id || ('DTR-' + String(mapKeys.length).padStart(3, '0')),
+        nama: ex.nama || 'Hamba Allah',
+        no_wa: ex.no_wa || '-',
+        email: ex.email || '-',
+        alamat: ex.alamat || '-',
+        total_donasi: Number(ex.total_donasi) || 0,
+        frekuensi: Number(ex.frekuensi) || 0,
+        created_at: ex.created_at || Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss'),
+        updated_at: ex.updated_at || Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss')
+      };
+    }
+  });
+
+  const list = mapKeys.map(k => map[k]).sort((a, b) => (b.total_donasi || 0) - (a.total_donasi || 0));
+  list.forEach((item, idx) => {
+    item.id = 'DTR-' + String(idx + 1).padStart(3, '0');
+  });
+
+  return list;
+}
+
 function getAdminData() {
   const ss = getSS();
   const donasiSheet = ss.getSheetByName("donasi_masuk");
@@ -502,13 +634,31 @@ function getAdminData() {
   const ambulanSheet = ss.getSheetByName("layanan_ambulan");
   const settingsSheet = ss.getSheetByName("settings");
 
-  const toObjList = (sheet) => {
+  if (auditSheet && auditSheet.getLastRow() > 0) {
+    const firstCell = String(auditSheet.getRange(1, 1).getValue()).trim();
+    if (firstCell.toLowerCase() !== "id") {
+      // Header tertimpa baris data, pulihkan baris header di baris 1
+      auditSheet.insertRowBefore(1);
+      auditSheet.getRange(1, 1, 1, 6).setValues([["id", "timestamp", "user", "action", "detail", "ip_client"]]);
+      auditSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#0d7a57").setFontColor("#ffffff");
+    }
+  }
+
+  const toObjList = (sheet, fallbackHeaders = null) => {
     if (!sheet) return [];
     const values = sheet.getDataRange().getValues();
-    if (values.length <= 1) return [];
-    const headers = values[0];
+    if (values.length === 0) return [];
+    
+    let headers = values[0];
+    let startIdx = 1;
+    if (fallbackHeaders && String(headers[0]).trim().toLowerCase() !== String(fallbackHeaders[0]).toLowerCase()) {
+      headers = fallbackHeaders;
+      startIdx = 0;
+    }
+    if (values.length <= startIdx) return [];
+
     const list = [];
-    for (let i = 1; i < values.length; i++) {
+    for (let i = startIdx; i < values.length; i++) {
       const obj = {};
       for (let j = 0; j < headers.length; j++) {
         let val = values[i][j];
@@ -530,9 +680,10 @@ function getAdminData() {
 
   const donasiList = toObjList(donasiSheet).reverse();
   const pengeluaranList = toObjList(pengeluaranSheet).reverse();
-  const donaturList = toObjList(donaturSheet).reverse();
+  const rawDonaturList = toObjList(donaturSheet).reverse();
+  const donaturList = compileDonaturList(donasiList, rawDonaturList);
   const userList = toObjList(userSheet).map(u => ({ ...u, password: "***" }));
-  const auditList = toObjList(auditSheet).reverse().slice(0, 100);
+  const auditList = toObjList(auditSheet, ["id", "timestamp", "user", "action", "detail", "ip_client"]).reverse().slice(0, 100);
   const ambulanList = toObjList(ambulanSheet).reverse();
 
   let totalMasukVerified = 0;
@@ -620,6 +771,65 @@ function verifyDonasi(data) {
   }
 
   return { success: false, message: "ID donasi tidak ditemukan" };
+}
+
+function addDonasiManual(data) {
+  const ss = getSS();
+  const donasiSheet = ss.getSheetByName("donasi_masuk");
+  const donaturSheet = ss.getSheetByName("donatur");
+
+  if (!donasiSheet) initDatabase();
+
+  const id = "DON-" + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd-HHmmss");
+  let tanggal = data.tanggal;
+  if (!tanggal) {
+    tanggal = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+  } else if (tanggal.length === 10) {
+    tanggal += Utilities.formatDate(new Date(), "Asia/Jakarta", " HH:mm:ss");
+  }
+
+  const nama = data.nama || "Hamba Allah";
+  const no_wa = data.no_wa || "-";
+  const nominal = Number(data.nominal) || 0;
+  const metode = data.metode_bayar || "Tunai / Cash";
+  const program = data.program || "Pengadaan Armada Ambulan";
+  const doa = data.doa_pesan || "Donasi dicatat manual oleh admin";
+  const status = data.status || "Verified";
+  const adminName = data.adminName || data.pic || "Admin";
+
+  // Handle Upload Bukti jika Base64
+  let buktiUrl = data.bukti_transfer || "";
+  if (data.bukti_base64 && data.bukti_base64.indexOf("base64,") > -1) {
+    buktiUrl = saveBase64ToDrive(data.bukti_base64, "BUKTI-" + id + ".jpg");
+  }
+
+  const verifiedBy = status === "Verified" ? adminName : "";
+  const verifiedAt = status === "Verified" ? Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss") : "";
+
+  const row = [
+    id, tanggal, nama, no_wa, nominal, metode, program, doa, buktiUrl, status, verifiedBy, verifiedAt, ""
+  ];
+  donasiSheet.appendRow(row);
+
+  // Update atau tambah data donatur otomatis
+  if (donaturSheet) {
+    updateOrAddDonatur(donaturSheet, {
+      nama: nama,
+      no_wa: no_wa,
+      email: data.email || "-",
+      alamat: data.alamat || "-",
+      nominal: nominal,
+      tanggal: tanggal
+    });
+  }
+
+  logAudit(adminName, "ADD_DONASI_MANUAL", `Donasi manual Rp ${nominal} (${nama}) dicatat sebagai ${status}`);
+
+  return {
+    success: true,
+    message: "Donasi manual berhasil dicatat",
+    donasiId: id
+  };
 }
 
 function addPengeluaran(data) {
@@ -830,8 +1040,14 @@ function validateAdminToken(token) {
 function logAudit(user, action, detail) {
   try {
     const ss = getSS();
-    const sheet = ss.getSheetByName("audit_log");
-    if (!sheet) return;
+    let sheet = ss.getSheetByName("audit_log");
+    if (!sheet) {
+      sheet = ss.insertSheet("audit_log");
+    }
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["id", "timestamp", "user", "action", "detail", "ip_client"]);
+      sheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#0d7a57").setFontColor("#ffffff");
+    }
     const id = "AUD-" + Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyyMMdd-HHmmss");
     sheet.appendRow([
       id,
