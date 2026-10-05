@@ -1517,13 +1517,16 @@
           </div>
         </div>
       </div>
-      <div class="modal-footer" style="justify-content: space-between;">
-        <button class="btn btn-danger" onclick="window.adminPortal.submitVerification('Rejected')">
-          <i class="fa-solid fa-xmark"></i> Tolak Donasi
-        </button>
-        <button class="btn btn-primary" onclick="window.adminPortal.submitVerification('Verified')">
-          <i class="fa-solid fa-check"></i> Verifikasi Sah & Masuk Saldo
-        </button>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <button type="button" class="btn btn-outline modal-close" onclick="window.app.closeModal('modal-verifikasi-donasi')">Batal</button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-danger" onclick="window.adminPortal.submitVerification('Rejected')">
+            <i class="fa-solid fa-xmark"></i> Tolak Donasi
+          </button>
+          <button class="btn btn-primary" onclick="window.adminPortal.submitVerification('Verified')">
+            <i class="fa-solid fa-check"></i> Verifikasi Sah & Masuk Saldo
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1598,7 +1601,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="button" class="btn btn-outline modal-close" onclick="window.app.closeModal('modal-tambah-donasi')">Batal</button>
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Simpan Donasi</button>
         </div>
       </form>
@@ -1642,7 +1645,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="button" class="btn btn-outline modal-close" onclick="window.app.closeModal('modal-tambah-pengeluaran')">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan Pengeluaran</button>
         </div>
       </form>
@@ -1684,7 +1687,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="button" class="btn btn-outline modal-close" onclick="window.app.closeModal('modal-tambah-user')">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan User</button>
         </div>
       </form>
@@ -1736,7 +1739,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline modal-close">Batal</button>
+          <button type="button" class="btn btn-outline modal-close" onclick="window.app.closeModal('modal-edit-user')">Batal</button>
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
         </div>
       </form>
@@ -1787,7 +1790,7 @@
         </p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary btn-block modal-close">Selesai</button>
+        <button type="button" class="btn btn-primary btn-block modal-close" onclick="window.app.closeModal('modal-kwitansi-sukses')">Selesai</button>
       </div>
     </div>
   </div>
@@ -1920,9 +1923,9 @@
   </nav>
 
   <!-- Script Modules -->
-  <script src="js/api.js?v=7"></script>
-  <script src="js/public.js?v=7"></script>
-  <script src="js/admin.js?v=7"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/api.js?v=8"></script>
+  <script src="js/public.js?v=8"></script>
+  <script src="js/admin.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

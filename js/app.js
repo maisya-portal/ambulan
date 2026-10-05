@@ -270,11 +270,30 @@ class AmbulanApp {
           modal.classList.remove('show');
         }
       });
-      const btnClose = modal.querySelector('.modal-close');
-      if (btnClose) {
-        btnClose.addEventListener('click', () => {
+      // Attach to all close buttons inside the modal (header X and footer Batal)
+      modal.querySelectorAll('.modal-close').forEach(btnClose => {
+        btnClose.addEventListener('click', (e) => {
+          e.preventDefault();
           modal.classList.remove('show');
         });
+      });
+    });
+
+    // Global event delegation fallback for any .modal-close button
+    document.addEventListener('click', (e) => {
+      const closeBtn = e.target.closest('.modal-close');
+      if (closeBtn) {
+        const backdrop = closeBtn.closest('.modal-backdrop');
+        if (backdrop) {
+          backdrop.classList.remove('show');
+        }
+      }
+    });
+
+    // Close on Escape key press
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
       }
     });
   }
