@@ -708,8 +708,29 @@ class AmbulanApi {
           const rawDonatur = json.data.donatur || [];
           const rawLayanan = json.data.layananAmbulan || [];
 
-          const cleanDonasi = filterDemo ? rawDonasi.filter(d => !this.isDemoRecord(d)) : rawDonasi;
-          const cleanPengeluaran = filterDemo ? rawPengeluaran.filter(p => !this.isDemoRecord(p)) : rawPengeluaran;
+          let cleanDonasi = filterDemo ? rawDonasi.filter(d => !this.isDemoRecord(d)) : rawDonasi;
+          let cleanPengeluaran = filterDemo ? rawPengeluaran.filter(p => !this.isDemoRecord(p)) : rawPengeluaran;
+
+          // Terapkan marker hapus & edit lokal agar tampilan UI konsisten instan
+          const deletedExpIds = JSON.parse(localStorage.getItem('maisya_deleted_exp_ids') || '[]');
+          const editedExpMap = JSON.parse(localStorage.getItem('maisya_edited_pengeluaran_map') || '{}');
+          const deletedDonasiIds = JSON.parse(localStorage.getItem('maisya_deleted_donasi_ids') || '[]');
+          const editedDonasiMap = JSON.parse(localStorage.getItem('maisya_edited_donasi_map') || '{}');
+
+          cleanPengeluaran = cleanPengeluaran
+            .filter(p => !deletedExpIds.includes(String(p.id).trim()))
+            .map(p => {
+              const k = String(p.id).trim();
+              return editedExpMap[k] ? { ...p, ...editedExpMap[k] } : p;
+            });
+
+          cleanDonasi = cleanDonasi
+            .filter(d => !deletedDonasiIds.includes(String(d.id).trim()))
+            .map(d => {
+              const k = String(d.id).trim();
+              return editedDonasiMap[k] ? { ...d, ...editedDonasiMap[k] } : d;
+            });
+
           const initialDonatur = filterDemo ? rawDonatur.filter(d => !this.isDemoRecord(d)) : rawDonatur;
           const cleanDonatur = this.compileDonaturFromDonasi(cleanDonasi, initialDonatur);
           const cleanLayanan = filterDemo ? rawLayanan.filter(a => !this.isDemoRecord(a)) : rawLayanan;
@@ -739,6 +760,15 @@ class AmbulanApi {
           });
 
           const saldoKas = totalMasukVerified - totalPengeluaran;
+
+          // Sinkronkan seluruh data riil bersih ke cache local storage agar selalu ada & konsisten
+          const localDb = this.getDb();
+          localDb.donasi_masuk = cleanDonasi;
+          localDb.pengeluaran = cleanPengeluaran;
+          localDb.donatur = cleanDonatur;
+          localDb.layanan_ambulan = cleanLayanan;
+          if (json.data.settings) localDb.settings = { ...localDb.settings, ...json.data.settings };
+          this.saveDb(localDb);
 
           return {
             kpi: {
@@ -1010,28 +1040,35 @@ class AmbulanApi {
   }
 
   async addPengeluaran(expenseData, adminName) {
+    const admin = adminName || expenseData.pic || 'Admin';
+    let gasSuccess = false;
+    let savedId = null;
+
     if (this.isOnlineMode()) {
       try {
         const res = await fetch(this.getAppsScriptUrl(), {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'addPengeluaran', ...expenseData, pic: adminName })
+          body: JSON.stringify({ action: 'addPengeluaran', ...expenseData, pic: admin })
         });
         const json = await res.json();
-        if (json.success) return json;
+        if (json && json.success) {
+          gasSuccess = true;
+          savedId = json.id;
+        }
       } catch (e) {
-        console.warn('Apps script addPengeluaran error:', e);
+        console.warn('Apps script addPengeluaran error, fallback ke local storage:', e);
       }
     }
 
     const db = this.getDb();
     const now = new Date();
-    const id = "EXP-" + now.getFullYear() +
+    const id = savedId || ("EXP-" + now.getFullYear() +
       String(now.getMonth() + 1).padStart(2, '0') +
       String(now.getDate()).padStart(2, '0') + "-" +
       String(now.getHours()).padStart(2, '0') +
       String(now.getMinutes()).padStart(2, '0') +
-      String(now.getSeconds()).padStart(2, '0');
+      String(now.getSeconds()).padStart(2, '0'));
 
     const newExpense = {
       id: id,
@@ -1039,61 +1076,81 @@ class AmbulanApi {
       kategori: expenseData.kategori,
       deskripsi: expenseData.deskripsi,
       nominal: Number(expenseData.nominal) || 0,
-      pic: adminName || expenseData.pic || "Admin",
+      pic: admin,
       bukti_nota: expenseData.bukti_nota || "assets/logo.png"
     };
 
+    if (!db.pengeluaran) db.pengeluaran = [];
     db.pengeluaran.unshift(newExpense);
 
+    if (!db.audit_log) db.audit_log = [];
     db.audit_log.unshift({
       id: "AUD-" + Date.now(),
       timestamp: now.toISOString().replace('T', ' ').substring(0, 19),
-      user: adminName,
+      user: admin,
       action: "ADD_EXPENSE",
       detail: `Pengeluaran ${newExpense.kategori} senilai Rp ${newExpense.nominal.toLocaleString('id-ID')}`
     });
 
     this.saveDb(db);
-    return { success: true, message: 'Catatan pengeluaran berhasil disimpan!', id: id };
+
+    // Bersihkan dari daftar ID terhapus jika sebelumnya pernah dihapus
+    const deletedExpIds = JSON.parse(localStorage.getItem('maisya_deleted_exp_ids') || '[]');
+    const filteredDel = deletedExpIds.filter(x => x !== id);
+    localStorage.setItem('maisya_deleted_exp_ids', JSON.stringify(filteredDel));
+
+    return {
+      success: true,
+      message: 'Catatan pengeluaran berhasil disimpan!',
+      id: id,
+      gasSynced: gasSuccess
+    };
   }
 
   async editDonasi(id, updateData, adminName) {
     const admin = adminName || 'Admin';
-    if (this.isOnlineMode()) {
-      try {
-        await fetch(this.getAppsScriptUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'editDonasi', id, ...updateData, adminName: admin })
-        });
-      } catch (e) {
-        console.warn('Apps script editDonasi error, fallback ke local storage:', e);
-      }
-    }
+    const cleanId = String(id || '').trim();
 
+    // 1. Update ke basis data lokal
     const db = this.getDb();
-    const idx = (db.donasi_masuk || []).findIndex(d => String(d.id) === String(id));
-    if (idx === -1) {
-      return { success: false, message: 'Data donasi tidak ditemukan' };
-    }
-
-    const item = db.donasi_masuk[idx];
-    if (updateData.tanggal) item.tanggal = updateData.tanggal;
-    if (updateData.nama || updateData.nama_donatur) item.nama_donatur = updateData.nama || updateData.nama_donatur;
-    if (updateData.no_wa !== undefined) item.no_wa = updateData.no_wa;
-    if (updateData.nominal !== undefined) item.nominal = Number(updateData.nominal) || 0;
-    if (updateData.metode_bayar) item.metode_bayar = updateData.metode_bayar;
-    if (updateData.program) item.program = updateData.program;
-    if (updateData.doa_pesan !== undefined) item.doa_pesan = updateData.doa_pesan;
-    if (updateData.status) {
-      item.status = updateData.status;
-      if (item.status === 'Verified' && !item.verified_by) {
-        item.verified_by = admin;
-        item.verified_at = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const idx = (db.donasi_masuk || []).findIndex(d => String(d.id).trim() === cleanId);
+    let item = null;
+    if (idx !== -1) {
+      item = db.donasi_masuk[idx];
+      if (updateData.tanggal) item.tanggal = updateData.tanggal;
+      if (updateData.nama || updateData.nama_donatur) item.nama_donatur = updateData.nama || updateData.nama_donatur;
+      if (updateData.no_wa !== undefined) item.no_wa = updateData.no_wa;
+      if (updateData.nominal !== undefined) item.nominal = Number(updateData.nominal) || 0;
+      if (updateData.metode_bayar) item.metode_bayar = updateData.metode_bayar;
+      if (updateData.program) item.program = updateData.program;
+      if (updateData.doa_pesan !== undefined) item.doa_pesan = updateData.doa_pesan;
+      if (updateData.status) {
+        item.status = updateData.status;
+        if (item.status === 'Verified' && !item.verified_by) {
+          item.verified_by = admin;
+          item.verified_at = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        }
       }
+      db.donasi_masuk[idx] = item;
+    } else {
+      item = {
+        id: cleanId,
+        tanggal: updateData.tanggal || new Date().toISOString().substring(0, 10),
+        nama_donatur: updateData.nama || updateData.nama_donatur || 'Hamba Allah',
+        no_wa: updateData.no_wa || '-',
+        nominal: Number(updateData.nominal) || 0,
+        metode_bayar: updateData.metode_bayar || 'QRIS',
+        program: updateData.program || 'Pengadaan Armada Ambulan',
+        doa_pesan: updateData.doa_pesan || '',
+        bukti_transfer: 'assets/logo.png',
+        status: updateData.status || 'Verified',
+        verified_by: admin,
+        verified_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
+      };
+      if (!db.donasi_masuk) db.donasi_masuk = [];
+      db.donasi_masuk.unshift(item);
     }
 
-    db.donasi_masuk[idx] = item;
     db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
 
     if (!db.audit_log) db.audit_log = [];
@@ -1102,35 +1159,73 @@ class AmbulanApi {
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
       user: admin,
       action: "EDIT_DONASI",
-      detail: `Memperbarui data donasi ${id} (${item.nama_donatur} - Rp ${(item.nominal || 0).toLocaleString('id-ID')})`
+      detail: `Memperbarui data donasi ${cleanId} (${item.nama_donatur} - Rp ${(item.nominal || 0).toLocaleString('id-ID')})`
     });
 
     this.saveDb(db);
-    return { success: true, message: `Data donasi ${id} berhasil diperbarui!` };
+
+    // Simpan ke tracking overlay edit donasi
+    const editedDonasiMap = JSON.parse(localStorage.getItem('maisya_edited_donasi_map') || '{}');
+    editedDonasiMap[cleanId] = {
+      tanggal: updateData.tanggal,
+      nama_donatur: updateData.nama || updateData.nama_donatur,
+      no_wa: updateData.no_wa,
+      nominal: Number(updateData.nominal) || 0,
+      metode_bayar: updateData.metode_bayar,
+      program: updateData.program,
+      doa_pesan: updateData.doa_pesan,
+      status: updateData.status
+    };
+    localStorage.setItem('maisya_edited_donasi_map', JSON.stringify(editedDonasiMap));
+
+    // 2. Kirim ke Google Apps Script jika online
+    let gasSuccess = false;
+    let gasMsg = '';
+    if (this.isOnlineMode()) {
+      try {
+        const res = await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'editDonasi', id: cleanId, ...updateData, adminName: admin })
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          gasSuccess = true;
+          gasMsg = json.message;
+        }
+      } catch (e) {
+        console.warn('Apps script editDonasi POST error, mencoba GET fallback:', e);
+      }
+
+      if (!gasSuccess) {
+        try {
+          const getUrl = `${this.getAppsScriptUrl()}?action=editDonasi&payload=${encodeURIComponent(JSON.stringify({ id: cleanId, ...updateData, adminName: admin }))}&_t=${Date.now()}`;
+          const resGet = await fetch(getUrl, { cache: 'no-store' });
+          const jsonGet = await resGet.json();
+          if (jsonGet && jsonGet.success) {
+            gasSuccess = true;
+            gasMsg = jsonGet.message;
+          }
+        } catch (_) {}
+      }
+    }
+
+    return {
+      success: true,
+      gasSynced: gasSuccess,
+      message: gasSuccess
+        ? (gasMsg || `Data donasi ${cleanId} berhasil diperbarui di Google Spreadsheet!`)
+        : `Data donasi ${cleanId} berhasil diperbarui!`
+    };
   }
 
   async deleteDonasi(id, adminName) {
     const admin = adminName || 'Admin';
-    if (this.isOnlineMode()) {
-      try {
-        await fetch(this.getAppsScriptUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'deleteDonasi', id, adminName: admin })
-        });
-      } catch (e) {
-        console.warn('Apps script deleteDonasi error, fallback ke local storage:', e);
-      }
-    }
+    const cleanId = String(id || '').trim();
 
+    // 1. Hapus dari basis data lokal
     const db = this.getDb();
-    const beforeCount = (db.donasi_masuk || []).length;
-    db.donasi_masuk = (db.donasi_masuk || []).filter(d => String(d.id) !== String(id));
-
-    if (db.donasi_masuk.length === beforeCount) {
-      return { success: false, message: 'ID donasi tidak ditemukan' };
-    }
-
+    db.donasi_masuk = (db.donasi_masuk || []).filter(d => String(d.id).trim() !== cleanId);
     db.donatur = this.compileDonaturFromDonasi(db.donasi_masuk, db.donatur);
 
     if (!db.audit_log) db.audit_log = [];
@@ -1139,41 +1234,94 @@ class AmbulanApi {
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
       user: admin,
       action: "DELETE_DONASI",
-      detail: `Menghapus data donasi ${id}`
+      detail: `Menghapus data donasi ${cleanId}`
     });
-
     this.saveDb(db);
-    return { success: true, message: `Data donasi ${id} berhasil dihapus!` };
+
+    // Simpan ke daftar ID terhapus agar tidak muncul kembali
+    const deletedDonasiIds = JSON.parse(localStorage.getItem('maisya_deleted_donasi_ids') || '[]');
+    if (!deletedDonasiIds.includes(cleanId)) {
+      deletedDonasiIds.push(cleanId);
+      localStorage.setItem('maisya_deleted_donasi_ids', JSON.stringify(deletedDonasiIds));
+    }
+
+    // Bersihkan dari map edit jika ada
+    const editedDonasiMap = JSON.parse(localStorage.getItem('maisya_edited_donasi_map') || '{}');
+    if (editedDonasiMap[cleanId]) {
+      delete editedDonasiMap[cleanId];
+      localStorage.setItem('maisya_edited_donasi_map', JSON.stringify(editedDonasiMap));
+    }
+
+    // 2. Kirim ke Google Apps Script jika online
+    let gasSuccess = false;
+    let gasMsg = '';
+    if (this.isOnlineMode()) {
+      try {
+        const res = await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'deleteDonasi', id: cleanId, adminName: admin })
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          gasSuccess = true;
+          gasMsg = json.message;
+        }
+      } catch (e) {
+        console.warn('Apps script deleteDonasi POST error, mencoba GET fallback:', e);
+      }
+
+      if (!gasSuccess) {
+        try {
+          const getUrl = `${this.getAppsScriptUrl()}?action=deleteDonasi&id=${encodeURIComponent(cleanId)}&adminName=${encodeURIComponent(admin)}&_t=${Date.now()}`;
+          const resGet = await fetch(getUrl, { cache: 'no-store' });
+          const jsonGet = await resGet.json();
+          if (jsonGet && jsonGet.success) {
+            gasSuccess = true;
+            gasMsg = jsonGet.message;
+          }
+        } catch (_) {}
+      }
+    }
+
+    return {
+      success: true,
+      gasSynced: gasSuccess,
+      message: gasSuccess
+        ? (gasMsg || `Data donasi ${cleanId} berhasil dihapus dari Google Spreadsheet!`)
+        : `Data donasi ${cleanId} berhasil dihapus!`
+    };
   }
 
   async editPengeluaran(id, updateData, adminName) {
     const admin = adminName || 'Admin';
-    if (this.isOnlineMode()) {
-      try {
-        await fetch(this.getAppsScriptUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'editPengeluaran', id, ...updateData, adminName: admin })
-        });
-      } catch (e) {
-        console.warn('Apps script editPengeluaran error, fallback ke local storage:', e);
-      }
-    }
+    const cleanId = String(id || '').trim();
 
+    // 1. Update ke basis data lokal
     const db = this.getDb();
-    const idx = (db.pengeluaran || []).findIndex(p => String(p.id) === String(id));
-    if (idx === -1) {
-      return { success: false, message: 'Data pengeluaran tidak ditemukan' };
+    const idx = (db.pengeluaran || []).findIndex(p => String(p.id).trim() === cleanId);
+    let item = null;
+    if (idx !== -1) {
+      item = db.pengeluaran[idx];
+      if (updateData.tanggal) item.tanggal = updateData.tanggal;
+      if (updateData.kategori) item.kategori = updateData.kategori;
+      if (updateData.deskripsi) item.deskripsi = updateData.deskripsi;
+      if (updateData.nominal !== undefined) item.nominal = Number(updateData.nominal) || 0;
+      if (updateData.pic) item.pic = updateData.pic;
+      db.pengeluaran[idx] = item;
+    } else {
+      item = {
+        id: cleanId,
+        tanggal: updateData.tanggal || new Date().toISOString().substring(0, 10),
+        kategori: updateData.kategori || 'Operasional Lainnya',
+        deskripsi: updateData.deskripsi || '',
+        nominal: Number(updateData.nominal) || 0,
+        pic: updateData.pic || admin,
+        bukti_nota: 'assets/logo.png'
+      };
+      if (!db.pengeluaran) db.pengeluaran = [];
+      db.pengeluaran.unshift(item);
     }
-
-    const item = db.pengeluaran[idx];
-    if (updateData.tanggal) item.tanggal = updateData.tanggal;
-    if (updateData.kategori) item.kategori = updateData.kategori;
-    if (updateData.deskripsi) item.deskripsi = updateData.deskripsi;
-    if (updateData.nominal !== undefined) item.nominal = Number(updateData.nominal) || 0;
-    if (updateData.pic) item.pic = updateData.pic;
-
-    db.pengeluaran[idx] = item;
 
     if (!db.audit_log) db.audit_log = [];
     db.audit_log.unshift({
@@ -1181,34 +1329,70 @@ class AmbulanApi {
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
       user: admin,
       action: "EDIT_EXPENSE",
-      detail: `Memperbarui data pengeluaran ${id} (${item.kategori} - Rp ${(item.nominal || 0).toLocaleString('id-ID')})`
+      detail: `Memperbarui data pengeluaran ${cleanId} (${updateData.kategori || ''} - Rp ${(Number(updateData.nominal) || 0).toLocaleString('id-ID')})`
     });
 
     this.saveDb(db);
-    return { success: true, message: `Data pengeluaran ${id} berhasil diperbarui!` };
+
+    // Simpan ke tracking overlay edit pengeluaran
+    const editedExpMap = JSON.parse(localStorage.getItem('maisya_edited_pengeluaran_map') || '{}');
+    editedExpMap[cleanId] = {
+      tanggal: updateData.tanggal,
+      kategori: updateData.kategori,
+      deskripsi: updateData.deskripsi,
+      nominal: Number(updateData.nominal) || 0,
+      pic: updateData.pic || admin
+    };
+    localStorage.setItem('maisya_edited_pengeluaran_map', JSON.stringify(editedExpMap));
+
+    // 2. Kirim ke Google Apps Script jika online
+    let gasSuccess = false;
+    let gasMsg = '';
+    if (this.isOnlineMode()) {
+      try {
+        const res = await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'editPengeluaran', id: cleanId, ...updateData, adminName: admin })
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          gasSuccess = true;
+          gasMsg = json.message;
+        }
+      } catch (e) {
+        console.warn('Apps script editPengeluaran POST error, mencoba GET fallback:', e);
+      }
+
+      if (!gasSuccess) {
+        try {
+          const getUrl = `${this.getAppsScriptUrl()}?action=editPengeluaran&payload=${encodeURIComponent(JSON.stringify({ id: cleanId, ...updateData, adminName: admin }))}&_t=${Date.now()}`;
+          const resGet = await fetch(getUrl, { cache: 'no-store' });
+          const jsonGet = await resGet.json();
+          if (jsonGet && jsonGet.success) {
+            gasSuccess = true;
+            gasMsg = jsonGet.message;
+          }
+        } catch (_) {}
+      }
+    }
+
+    return {
+      success: true,
+      gasSynced: gasSuccess,
+      message: gasSuccess
+        ? (gasMsg || `Data pengeluaran ${cleanId} berhasil diperbarui di Google Spreadsheet!`)
+        : `Data pengeluaran ${cleanId} berhasil diperbarui!`
+    };
   }
 
   async deletePengeluaran(id, adminName) {
     const admin = adminName || 'Admin';
-    if (this.isOnlineMode()) {
-      try {
-        await fetch(this.getAppsScriptUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'deletePengeluaran', id, adminName: admin })
-        });
-      } catch (e) {
-        console.warn('Apps script deletePengeluaran error, fallback ke local storage:', e);
-      }
-    }
+    const cleanId = String(id || '').trim();
 
+    // 1. Hapus dari basis data lokal
     const db = this.getDb();
-    const beforeCount = (db.pengeluaran || []).length;
-    db.pengeluaran = (db.pengeluaran || []).filter(p => String(p.id) !== String(id));
-
-    if (db.pengeluaran.length === beforeCount) {
-      return { success: false, message: 'ID pengeluaran tidak ditemukan' };
-    }
+    db.pengeluaran = (db.pengeluaran || []).filter(p => String(p.id).trim() !== cleanId);
 
     if (!db.audit_log) db.audit_log = [];
     db.audit_log.unshift({
@@ -1216,11 +1400,63 @@ class AmbulanApi {
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
       user: admin,
       action: "DELETE_EXPENSE",
-      detail: `Menghapus data pengeluaran ${id}`
+      detail: `Menghapus data pengeluaran ${cleanId}`
     });
-
     this.saveDb(db);
-    return { success: true, message: `Data pengeluaran ${id} berhasil dihapus!` };
+
+    // Simpan ke daftar ID terhapus agar tidak muncul kembali
+    const deletedExpIds = JSON.parse(localStorage.getItem('maisya_deleted_exp_ids') || '[]');
+    if (!deletedExpIds.includes(cleanId)) {
+      deletedExpIds.push(cleanId);
+      localStorage.setItem('maisya_deleted_exp_ids', JSON.stringify(deletedExpIds));
+    }
+
+    // Bersihkan dari map edit jika ada
+    const editedExpMap = JSON.parse(localStorage.getItem('maisya_edited_pengeluaran_map') || '{}');
+    if (editedExpMap[cleanId]) {
+      delete editedExpMap[cleanId];
+      localStorage.setItem('maisya_edited_pengeluaran_map', JSON.stringify(editedExpMap));
+    }
+
+    // 2. Kirim ke Google Apps Script jika online
+    let gasSuccess = false;
+    let gasMsg = '';
+    if (this.isOnlineMode()) {
+      try {
+        const res = await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'deletePengeluaran', id: cleanId, adminName: admin })
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          gasSuccess = true;
+          gasMsg = json.message;
+        }
+      } catch (e) {
+        console.warn('Apps script deletePengeluaran POST error, mencoba GET fallback:', e);
+      }
+
+      if (!gasSuccess) {
+        try {
+          const getUrl = `${this.getAppsScriptUrl()}?action=deletePengeluaran&id=${encodeURIComponent(cleanId)}&adminName=${encodeURIComponent(admin)}&_t=${Date.now()}`;
+          const resGet = await fetch(getUrl, { cache: 'no-store' });
+          const jsonGet = await resGet.json();
+          if (jsonGet && jsonGet.success) {
+            gasSuccess = true;
+            gasMsg = jsonGet.message;
+          }
+        } catch (_) {}
+      }
+    }
+
+    return {
+      success: true,
+      gasSynced: gasSuccess,
+      message: gasSuccess
+        ? (gasMsg || `Data pengeluaran ${cleanId} berhasil dihapus dari Google Spreadsheet!`)
+        : `Data pengeluaran ${cleanId} berhasil dihapus!`
+    };
   }
 
   async addDonaturManual(donaturData, adminName) {
@@ -1441,6 +1677,18 @@ class AmbulanApi {
   }
 
   async manageUser(subAction, data, adminActor) {
+    if (this.isOnlineMode()) {
+      try {
+        await fetch(this.getAppsScriptUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'manageUser', subAction, ...data, adminActor })
+        });
+      } catch (e) {
+        console.warn('Apps script manageUser error, fallback ke local storage:', e);
+      }
+    }
+
     const db = this.getDb();
     const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
@@ -1586,6 +1834,12 @@ class AmbulanApi {
       { id: "AUD-001", timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19), user: "adminambulanmaisya", action: "CLEAN_DATABASE", detail: "Seluruh data demo dibersihkan, akun admin: adminambulanmaisya aktif" }
     ];
     this.saveDb(db);
+
+    // Bersihkan semua marker edit / hapus sementara
+    localStorage.removeItem('maisya_deleted_exp_ids');
+    localStorage.removeItem('maisya_edited_pengeluaran_map');
+    localStorage.removeItem('maisya_deleted_donasi_ids');
+    localStorage.removeItem('maisya_edited_donasi_map');
 
     // Pastikan filter demo tetap aktif
     this.setFilterDemoData(true);

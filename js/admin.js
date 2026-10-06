@@ -15,6 +15,7 @@ class AdminPortal {
     this.currentVerifyDonasi = null;
     this.currentDonasiManualBukti = null;
     this.activeFilterStatus = 'all';
+    this.activeFilterPengeluaran = 'all';
     this.initEventListeners();
   }
 
@@ -280,16 +281,40 @@ class AdminPortal {
     const tbody = document.getElementById('table-body-admin-pengeluaran');
     if (!tbody) return;
 
-    const list = this.adminData.pengeluaran;
+    let list = [...this.adminData.pengeluaran];
+
+    // Filter Kategori
+    if (this.activeFilterPengeluaran && this.activeFilterPengeluaran !== 'all') {
+      const targetKat = this.activeFilterPengeluaran.toLowerCase();
+      list = list.filter(p => String(p.kategori || '').toLowerCase().includes(targetKat));
+    }
+
+    // Filter Pencarian
+    const searchInput = document.getElementById('search-pengeluaran-input');
+    if (searchInput && searchInput.value.trim()) {
+      const q = searchInput.value.trim().toLowerCase();
+      list = list.filter(p =>
+        String(p.deskripsi || '').toLowerCase().includes(q) ||
+        String(p.id || '').toLowerCase().includes(q) ||
+        String(p.pic || '').toLowerCase().includes(q) ||
+        String(p.kategori || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Render Mini Breakdown Cards jika elemen ada
+    this.renderPengeluaranBreakdown();
+
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #64748b;">Belum ada data pengeluaran dicatat</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #64748b;">Belum ada data pengeluaran dicatat atau tidak cocok dengan filter pencarian</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = list.map(p => `
+    tbody.innerHTML = list.map(p => {
+      const tglClean = (p.tanggal || '').substring(0, 10);
+      return `
       <tr>
-        <td style="font-family: monospace; font-size: 0.85rem;">${p.id}</td>
-        <td style="white-space: nowrap;">${p.tanggal}</td>
+        <td style="font-family: monospace; font-size: 0.85rem; font-weight: 600;">${p.id}</td>
+        <td style="white-space: nowrap; font-size: 0.88rem;">${tglClean}</td>
         <td><span class="badge badge-warning">${p.kategori}</span></td>
         <td>${p.deskripsi}</td>
         <td><strong>${p.pic || 'Admin'}</strong></td>
@@ -305,7 +330,46 @@ class AdminPortal {
           </div>
         </td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
+  }
+
+  renderPengeluaranBreakdown() {
+    const elBreakdown = document.getElementById('pengeluaran-breakdown-container');
+    if (!elBreakdown || !this.adminData || !this.adminData.pengeluaran) return;
+    const formatRp = (num) => "Rp " + Number(num || 0).toLocaleString('id-ID');
+    const all = this.adminData.pengeluaran;
+    let bbm = 0, armada = 0, medis = 0, insentif = 0, lainnya = 0;
+    all.forEach(p => {
+      const kat = (p.kategori || '').toLowerCase();
+      const nom = Number(p.nominal) || 0;
+      if (kat.includes('bbm') || kat.includes('bakar')) bbm += nom;
+      else if (kat.includes('perawatan') || kat.includes('servis')) armada += nom;
+      else if (kat.includes('oksigen') || kat.includes('medis')) medis += nom;
+      else if (kat.includes('sopir') || kat.includes('insentif') || kat.includes('driver')) insentif += nom;
+      else lainnya += nom;
+    });
+
+    elBreakdown.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+        <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 0.75rem; border-left: 4px solid #f59e0b;">
+          <div style="font-size: 0.75rem; color: #92400e; font-weight: 700;">BBM Armada</div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: #b45309;">${formatRp(bbm)}</div>
+        </div>
+        <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 10px; padding: 0.75rem; border-left: 4px solid #3b82f6;">
+          <div style="font-size: 0.75rem; color: #1e40af; font-weight: 700;">Servis & Perawatan</div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: #1d4ed8;">${formatRp(armada)}</div>
+        </div>
+        <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 10px; padding: 0.75rem; border-left: 4px solid #10b981;">
+          <div style="font-size: 0.75rem; color: #166534; font-weight: 700;">Oksigen & Medis</div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: #059669;">${formatRp(medis)}</div>
+        </div>
+        <div style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 10px; padding: 0.75rem; border-left: 4px solid #a855f7;">
+          <div style="font-size: 0.75rem; color: #6b21a8; font-weight: 700;">Insentif Driver/Petugas</div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: #7e22ce;">${formatRp(insentif)}</div>
+        </div>
+      </div>
+    `;
   }
 
   renderSaldo() {
@@ -923,9 +987,20 @@ class AdminPortal {
 
         if (status === 'Verified') {
           // Tawarkan kirim konfirmasi WA
-          const tanyaWA = confirm('Apakah Anda ingin langsung mengirim Kwitansi Donasi ke WhatsApp donatur?');
-          if (tanyaWA) {
-            this.sendKwitansiWa(this.currentVerifyDonasi.id);
+          const rawWa = String(this.currentVerifyDonasi.no_wa || '').trim();
+          if (rawWa && rawWa !== '-') {
+            const tanyaWA = await window.app.confirmDialog({
+              title: 'Kirim Kwitansi via WhatsApp?',
+              message: `Donasi <strong>${this.currentVerifyDonasi.id}</strong> atas nama <strong>${this.currentVerifyDonasi.nama_donatur || 'Donatur'}</strong> berhasil diverifikasi.<br>Kirim kwitansi tanda terima resmi ke nomor WhatsApp donatur sekarang?`,
+              type: 'primary',
+              icon: 'fa-brands fa-whatsapp',
+              confirmText: 'Buka WhatsApp',
+              cancelText: 'Nanti Saja',
+              warningText: null
+            });
+            if (tanyaWA) {
+              this.sendKwitansiWa(this.currentVerifyDonasi.id);
+            }
           }
         }
       }
@@ -993,36 +1068,39 @@ class AdminPortal {
 
   exportCsv(type) {
     if (!this.adminData) return;
-    let csvContent = "data:text/csv;charset=utf-8,";
+    let csvContent = "";
     let filename = "laporan-ambulan.csv";
 
     if (type === 'donasi') {
       filename = `donasi-ambulan-${new Date().toISOString().substring(0,10)}.csv`;
       csvContent += "ID,Tanggal,Nama Donatur,No WA,Nominal,Metode,Program,Status\n";
       (this.adminData.donasi || []).forEach(d => {
-        csvContent += `"${d.id}","${d.tanggal}","${d.nama_donatur}","${String(d.no_wa || '-')}",${d.nominal},"${d.metode_bayar}","${d.program}","${d.status}"\n`;
+        csvContent += `"${d.id}","${d.tanggal}","${(d.nama_donatur || '').replace(/"/g, '""')}","${String(d.no_wa || '-')}",${d.nominal},"${d.metode_bayar}","${d.program}","${d.status}"\n`;
       });
     } else if (type === 'pengeluaran') {
       filename = `pengeluaran-ambulan-${new Date().toISOString().substring(0,10)}.csv`;
       csvContent += "ID,Tanggal,Kategori,Deskripsi,Nominal,PIC\n";
       (this.adminData.pengeluaran || []).forEach(p => {
-        csvContent += `"${p.id}","${p.tanggal}","${p.kategori}","${p.deskripsi}",${p.nominal},"${p.pic}"\n`;
+        csvContent += `"${p.id}","${p.tanggal}","${p.kategori}","${(p.deskripsi || '').replace(/"/g, '""')}",${p.nominal},"${p.pic}"\n`;
       });
     } else if (type === 'donatur') {
       filename = `data-donatur-ambulan-${new Date().toISOString().substring(0, 10)}.csv`;
       csvContent += "ID,Nama Donatur,No WA,Alamat,Total Kontribusi,Frekuensi Donasi,Donasi Terakhir\n";
       (this.adminData.donatur || []).forEach(d => {
-        csvContent += `"${d.id}","${d.nama}","${String(d.no_wa || '-')}","${d.alamat || '-'}","${d.total_donasi}","${d.frekuensi}","${d.donasi_terakhir || '-'}"\n`;
+        csvContent += `"${d.id}","${(d.nama || '').replace(/"/g, '""')}","${String(d.no_wa || '-')}","${(d.alamat || '-').replace(/"/g, '""')}",${d.total_donasi},${d.frekuensi},"${d.donasi_terakhir || '-'}"\n`;
       });
     }
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", filename);
+    link.href = url;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    window.app.showToast(`Laporan CSV (${filename}) berhasil diunduh!`, 'success');
   }
 
   showImagePreview(src) {
@@ -1073,7 +1151,19 @@ class AdminPortal {
       return;
     }
 
-    const isConfirmed = confirm(`Apakah Anda yakin ingin menghapus akun pengguna "${username}"? Tindakan ini tidak dapat dibatalkan.`);
+    const isConfirmed = await window.app.confirmDialog({
+      title: 'Hapus Pengguna Admin?',
+      message: `Apakah Anda yakin ingin menghapus akun pengguna <strong>"${username}"</strong>?`,
+      type: 'danger',
+      icon: 'fa-solid fa-user-xmark',
+      confirmText: 'Ya, Hapus Pengguna',
+      cancelText: 'Batal',
+      warningText: 'Perhatian: Pengguna ini tidak akan dapat login lagi ke sistem portal.',
+      itemDetails: [
+        { label: 'Username', value: `<code style="font-weight: 700; color: #dc2626;">${username}</code>` },
+        { label: 'ID User', value: userId }
+      ]
+    });
     if (!isConfirmed) return;
 
     try {
@@ -1090,7 +1180,15 @@ class AdminPortal {
   }
 
   async clearSpreadsheetDemo() {
-    const isSure = confirm("PERINGATAN: Apakah Anda yakin ingin membersihkan seluruh data demo (donasi masuk, pengeluaran, donatur) di Google Spreadsheet dan lokal? Tindakan ini akan mengosongkan tabel transaksi agar siap digunakan untuk data riil.");
+    const isSure = await window.app.confirmDialog({
+      title: 'Bersihkan Seluruh Data Demo?',
+      message: 'Tindakan ini akan mengosongkan seluruh baris transaksi demo (donasi masuk, pengeluaran, donatur) di Google Spreadsheet dan database lokal agar siap digunakan untuk data transaksi riil.',
+      type: 'warning',
+      icon: 'fa-solid fa-broom',
+      confirmText: 'Ya, Bersihkan Data Demo',
+      cancelText: 'Batalkan',
+      warningText: 'Catatan: Anda dapat memulihkan data sebelumnya kapan saja melalui menu File > Riwayat versi di Google Sheets.'
+    });
     if (!isSure) return;
 
     try {
@@ -1105,8 +1203,13 @@ class AdminPortal {
   }
 
   openEditDonasiModal(donasiId) {
+    const cleanId = String(donasiId || '').trim();
     if (!this.adminData || !this.adminData.donasi) return;
-    const d = this.adminData.donasi.find(x => String(x.id) === String(donasiId));
+    let d = this.adminData.donasi.find(x => String(x.id).trim() === cleanId);
+    if (!d) {
+      const db = window.ambulanApi.getDb();
+      d = (db.donasi_masuk || []).find(x => String(x.id).trim() === cleanId);
+    }
     if (!d) {
       window.app.showToast('Data donasi tidak ditemukan', 'error');
       return;
@@ -1114,7 +1217,13 @@ class AdminPortal {
 
     document.getElementById('edit-donasi-id').value = d.id;
     document.getElementById('edit-donasi-id-display').innerText = d.id;
-    document.getElementById('edit-donasi-tanggal').value = (d.tanggal || '').substring(0, 10);
+
+    let tglVal = '';
+    if (d.tanggal) {
+      const m = String(d.tanggal).match(/^\d{4}-\d{2}-\d{2}/);
+      tglVal = m ? m[0] : '';
+    }
+    document.getElementById('edit-donasi-tanggal').value = tglVal || new Date().toISOString().substring(0, 10);
     document.getElementById('edit-donasi-nama').value = d.nama_donatur || '';
     document.getElementById('edit-donasi-wa').value = (d.no_wa && d.no_wa !== '-') ? d.no_wa : '';
     document.getElementById('edit-donasi-nominal').value = Number(d.nominal || 0).toLocaleString('id-ID');
@@ -1134,18 +1243,39 @@ class AdminPortal {
   }
 
   async confirmDeleteDonasi(donasiId) {
+    const cleanId = String(donasiId || '').trim();
     if (!this.adminData || !this.adminData.donasi) return;
-    const d = this.adminData.donasi.find(x => String(x.id) === String(donasiId));
-    const label = d ? `${d.id} (${d.nama_donatur} - Rp ${Number(d.nominal || 0).toLocaleString('id-ID')})` : donasiId;
-
-    if (!confirm(`Apakah Anda yakin ingin MENGHAPUS data donasi ini?\n\n${label}\n\nPerhatian: Data yang dihapus tidak dapat dipulihkan.`)) {
-      return;
+    let d = this.adminData.donasi.find(x => String(x.id).trim() === cleanId);
+    if (!d) {
+      const db = window.ambulanApi.getDb();
+      d = (db.donasi_masuk || []).find(x => String(x.id).trim() === cleanId);
     }
+    const formatRp = (num) => "Rp " + Number(num || 0).toLocaleString('id-ID');
 
+    const confirmed = await window.app.confirmDialog({
+      title: 'Hapus Data Donasi Masuk?',
+      message: 'Apakah Anda yakin ingin menghapus data donasi ini dari sistem pencatatan?',
+      type: 'danger',
+      icon: 'fa-solid fa-trash-can',
+      confirmText: 'Ya, Hapus Donasi',
+      cancelText: 'Batal',
+      warningText: 'Perhatian: Data donasi yang dihapus tidak dapat dipulihkan kembali.',
+      itemDetails: [
+        { label: 'ID Donasi', value: `<code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.82rem;">${d?.id || cleanId}</code>` },
+        { label: 'Nama Donatur', value: d?.nama_donatur || 'Hamba Allah' },
+        { label: 'Nomor WhatsApp', value: d?.no_wa || '-' },
+        { label: 'Program Donasi', value: d?.program || '-' },
+        { label: 'Jumlah Donasi', value: formatRp(d?.nominal), highlight: true }
+      ]
+    });
+
+    if (!confirmed) return;
+
+    window.app.showToast('Sedang memproses penghapusan donasi...', 'info');
     try {
-      const res = await window.ambulanApi.deleteDonasi(donasiId, this.getCurrentUser()?.nama || 'Admin');
+      const res = await window.ambulanApi.deleteDonasi(cleanId, this.getCurrentUser()?.nama || 'Admin');
       if (res && res.success) {
-        window.app.showToast(res.message, 'success');
+        window.app.showToast(res.message || 'Donasi berhasil dihapus!', 'success');
         await this.loadAdminData();
         await window.publicPortal.refreshPublicData();
       } else {
@@ -1157,8 +1287,13 @@ class AdminPortal {
   }
 
   openEditPengeluaranModal(expenseId) {
+    const cleanId = String(expenseId || '').trim();
     if (!this.adminData || !this.adminData.pengeluaran) return;
-    const p = this.adminData.pengeluaran.find(x => String(x.id) === String(expenseId));
+    let p = this.adminData.pengeluaran.find(x => String(x.id).trim() === cleanId);
+    if (!p) {
+      const db = window.ambulanApi.getDb();
+      p = (db.pengeluaran || []).find(x => String(x.id).trim() === cleanId);
+    }
     if (!p) {
       window.app.showToast('Data pengeluaran tidak ditemukan', 'error');
       return;
@@ -1166,7 +1301,13 @@ class AdminPortal {
 
     document.getElementById('edit-exp-id').value = p.id;
     document.getElementById('edit-exp-id-display').innerText = p.id;
-    document.getElementById('edit-exp-tanggal').value = (p.tanggal || '').substring(0, 10);
+
+    let tglVal = '';
+    if (p.tanggal) {
+      const m = String(p.tanggal).match(/^\d{4}-\d{2}-\d{2}/);
+      tglVal = m ? m[0] : '';
+    }
+    document.getElementById('edit-exp-tanggal').value = tglVal || new Date().toISOString().substring(0, 10);
     document.getElementById('edit-exp-kategori').value = p.kategori || 'Operasional Lainnya';
     document.getElementById('edit-exp-deskripsi').value = p.deskripsi || '';
     document.getElementById('edit-exp-nominal').value = Number(p.nominal || 0).toLocaleString('id-ID');
@@ -1176,18 +1317,39 @@ class AdminPortal {
   }
 
   async confirmDeletePengeluaran(expenseId) {
+    const cleanId = String(expenseId || '').trim();
     if (!this.adminData || !this.adminData.pengeluaran) return;
-    const p = this.adminData.pengeluaran.find(x => String(x.id) === String(expenseId));
-    const label = p ? `${p.id} (${p.kategori}: ${p.deskripsi} - Rp ${Number(p.nominal || 0).toLocaleString('id-ID')})` : expenseId;
-
-    if (!confirm(`Apakah Anda yakin ingin MENGHAPUS catatan pengeluaran ini?\n\n${label}\n\nPerhatian: Data yang dihapus tidak dapat dipulihkan.`)) {
-      return;
+    let p = this.adminData.pengeluaran.find(x => String(x.id).trim() === cleanId);
+    if (!p) {
+      const db = window.ambulanApi.getDb();
+      p = (db.pengeluaran || []).find(x => String(x.id).trim() === cleanId);
     }
+    const formatRp = (num) => "Rp " + Number(num || 0).toLocaleString('id-ID');
 
+    const confirmed = await window.app.confirmDialog({
+      title: 'Hapus Catatan Pengeluaran?',
+      message: 'Apakah Anda yakin ingin menghapus catatan pengeluaran operasional ambulan ini?',
+      type: 'danger',
+      icon: 'fa-solid fa-trash-can',
+      confirmText: 'Ya, Hapus Pengeluaran',
+      cancelText: 'Batal',
+      warningText: 'Perhatian: Data yang dihapus tidak dapat dipulihkan kembali.',
+      itemDetails: [
+        { label: 'ID Transaksi', value: `<code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.82rem;">${p?.id || cleanId}</code>` },
+        { label: 'Kategori', value: `<span class="badge badge-warning" style="font-size: 0.78rem;">${p?.kategori || 'Pengeluaran'}</span>` },
+        { label: 'Deskripsi / Uraian', value: p?.deskripsi || '-' },
+        { label: 'Petugas (PIC)', value: p?.pic || '-' },
+        { label: 'Nominal', value: formatRp(p?.nominal), highlight: true }
+      ]
+    });
+
+    if (!confirmed) return;
+
+    window.app.showToast('Sedang memproses penghapusan pengeluaran...', 'info');
     try {
-      const res = await window.ambulanApi.deletePengeluaran(expenseId, this.getCurrentUser()?.nama || 'Admin');
+      const res = await window.ambulanApi.deletePengeluaran(cleanId, this.getCurrentUser()?.nama || 'Admin');
       if (res && res.success) {
-        window.app.showToast(res.message, 'success');
+        window.app.showToast(res.message || 'Pengeluaran berhasil dihapus!', 'success');
         await this.loadAdminData();
         await window.publicPortal.refreshPublicData();
       } else {
@@ -1393,6 +1555,23 @@ class AdminPortal {
       });
     });
 
+    // Search Pengeluaran
+    const searchPengeluaranInput = document.getElementById('search-pengeluaran-input');
+    if (searchPengeluaranInput) {
+      searchPengeluaranInput.addEventListener('input', () => this.renderPengeluaran());
+    }
+
+    // Filter Kategori Pengeluaran Tabs
+    const filterPengeluaranBtns = document.querySelectorAll('.filter-pengeluaran-btn');
+    filterPengeluaranBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterPengeluaranBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeFilterPengeluaran = btn.getAttribute('data-kategori');
+        this.renderPengeluaran();
+      });
+    });
+
     // Form Tambah Donasi Manual
     const formTambahDonasi = document.getElementById('form-tambah-donasi');
     if (formTambahDonasi) {
@@ -1496,8 +1675,17 @@ class AdminPortal {
 
             // Jika status Verified dan ada nomor WhatsApp, tawarkan pengiriman kwitansi
             if (status === 'Verified' && no_wa && no_wa !== '-' && res.donasiId) {
-              setTimeout(() => {
-                if (confirm(`Donasi ${res.donasiId} berhasil dicatat sebagai TERVERIFIKASI.\n\nApakah Anda ingin langsung membuka WhatsApp untuk mengirim Kwitansi Tanda Terima resmi ke donatur (${nama})?`)) {
+              setTimeout(async () => {
+                const tanyaKwitansi = await window.app.confirmDialog({
+                  title: 'Kirim Kwitansi via WhatsApp?',
+                  message: `Donasi <strong>${res.donasiId}</strong> (${nama}) berhasil dicatat sebagai TERVERIFIKASI.<br>Buka WhatsApp untuk mengirimkan tanda terima digital resmi sekarang?`,
+                  type: 'primary',
+                  icon: 'fa-brands fa-whatsapp',
+                  confirmText: 'Buka WhatsApp',
+                  cancelText: 'Nanti Saja',
+                  warningText: null
+                });
+                if (tanyaKwitansi) {
                   this.sendKwitansiWa(res.donasiId);
                 }
               }, 400);
@@ -1640,6 +1828,13 @@ class AdminPortal {
           return;
         }
 
+        const submitBtn = formEditDonasi.querySelector('button[type="submit"]');
+        const origText = submitBtn ? submitBtn.innerHTML : 'Simpan Perubahan';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+        }
+
         try {
           const res = await window.ambulanApi.editDonasi(id, data, this.getCurrentUser()?.nama || 'Admin');
           if (res && res.success) {
@@ -1652,6 +1847,11 @@ class AdminPortal {
           }
         } catch (err) {
           window.app.showToast('Gagal mengubah donasi: ' + err.toString(), 'error');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origText;
+          }
         }
       });
     }
@@ -1683,6 +1883,13 @@ class AdminPortal {
           return;
         }
 
+        const submitBtn = formEditExp.querySelector('button[type="submit"]');
+        const origText = submitBtn ? submitBtn.innerHTML : 'Simpan Perubahan';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+        }
+
         try {
           const res = await window.ambulanApi.editPengeluaran(id, data, this.getCurrentUser()?.nama || 'Admin');
           if (res && res.success) {
@@ -1695,6 +1902,11 @@ class AdminPortal {
           }
         } catch (err) {
           window.app.showToast('Gagal mengubah pengeluaran: ' + err.toString(), 'error');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origText;
+          }
         }
       });
     }
@@ -2174,6 +2386,48 @@ class AdminPortal {
         } catch (err) {
           window.app.showToast('Gagal memperbarui user: ' + err.toString(), 'error');
         }
+      });
+    }
+
+    // Toolbar Filter & Pencarian Donasi Masuk
+    document.querySelectorAll('.filter-donasi-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-donasi-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeFilterStatus = btn.getAttribute('data-status') || 'all';
+        this.renderDonasiMasuk();
+      });
+    });
+
+    const searchDonasi = document.getElementById('search-donasi-input');
+    if (searchDonasi) {
+      searchDonasi.addEventListener('input', () => {
+        this.renderDonasiMasuk();
+      });
+    }
+
+    // Pencarian Data Donatur
+    const searchDonatur = document.getElementById('search-donatur-input');
+    if (searchDonatur) {
+      searchDonatur.addEventListener('input', () => {
+        this.renderDataDonatur();
+      });
+    }
+
+    // Toolbar Filter & Pencarian Pengeluaran Operasional
+    document.querySelectorAll('.filter-pengeluaran-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pengeluaran-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeFilterPengeluaran = btn.getAttribute('data-kategori') || 'all';
+        this.renderPengeluaran();
+      });
+    });
+
+    const searchExp = document.getElementById('search-pengeluaran-input');
+    if (searchExp) {
+      searchExp.addEventListener('input', () => {
+        this.renderPengeluaran();
       });
     }
   }

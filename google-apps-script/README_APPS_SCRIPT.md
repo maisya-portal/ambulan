@@ -31,6 +31,15 @@ Ada 2 cara yang sangat mudah untuk membersihkan seluruh data demo:
 
 ---
 
+### ⚠️ PENTING: Cara Mengembalikan Data Jika Tidak Sengaja Terhapus / Kosong:
+Google Spreadsheet otomatis mencatat seluruh riwayat versi data setiap menit:
+1. Buka Google Spreadsheet **DB_Maisya_Ambulan**.
+2. Klik menu **File** -> **Riwayat versi (Version history)** -> **Lihat riwayat versi (See version history)** (atau tekan shortcut `Ctrl + Alt + Shift + H`).
+3. Pilih tanggal & jam sebelum data terhapus di panel sebelah kanan.
+4. Klik tombol **"Pulihkan versi ini" (Restore this version)** di bagian atas. Seluruh data transaksi akan langsung kembali utuh 100%!
+
+---
+
 ### Cara Update Kode Apps Script:
 1. Copy seluruh isi file terbaru `google-apps-script/Code.gs`.
 2. Buka editor Google Apps Script Anda, ganti kode yang ada dengan kode baru ini, lalu tekan **Ctrl + S (Simpan)**.

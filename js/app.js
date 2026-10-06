@@ -308,6 +308,160 @@ class AmbulanApp {
     if (el) el.classList.remove('show');
   }
 
+  confirmDialog(options) {
+    return new Promise((resolve) => {
+      // Support string shortcut: confirmDialog("Pesan...")
+      if (typeof options === 'string') {
+        options = {
+          message: options,
+          title: arguments[1] || 'Konfirmasi',
+          type: arguments[2] || 'danger'
+        };
+      }
+
+      const modal = document.getElementById('modal-custom-confirm');
+      if (!modal) {
+        resolve(window.confirm(options.message || options.title || 'Lanjutkan?'));
+        return;
+      }
+
+      const iconWrap = document.getElementById('confirm-dialog-icon-wrapper');
+      const icon = document.getElementById('confirm-dialog-icon');
+      const title = document.getElementById('confirm-dialog-title');
+      const message = document.getElementById('confirm-dialog-message');
+      const detailsCard = document.getElementById('confirm-dialog-details-card');
+      const detailsContent = document.getElementById('confirm-dialog-details-content');
+      const warningBox = document.getElementById('confirm-dialog-warning-box');
+      const warningText = document.getElementById('confirm-dialog-warning-text');
+      const btnCancel = document.getElementById('confirm-dialog-btn-cancel');
+      const btnConfirm = document.getElementById('confirm-dialog-btn-confirm');
+
+      const type = options.type || 'danger'; // 'danger', 'warning', 'primary'
+      const iconClass = options.icon || (type === 'danger' ? 'fa-solid fa-trash-can' : (type === 'warning' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-question'));
+
+      if (type === 'danger') {
+        if (iconWrap) {
+          iconWrap.style.background = '#fee2e2';
+          iconWrap.style.color = '#dc2626';
+          iconWrap.className = 'confirm-icon-pulse';
+        }
+        if (btnConfirm) {
+          btnConfirm.className = 'btn btn-danger';
+          btnConfirm.style.background = '#dc2626';
+          btnConfirm.style.borderColor = '#dc2626';
+          btnConfirm.style.color = '#ffffff';
+          btnConfirm.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.25)';
+        }
+      } else if (type === 'warning') {
+        if (iconWrap) {
+          iconWrap.style.background = '#fef3c7';
+          iconWrap.style.color = '#d97706';
+          iconWrap.className = 'confirm-icon-pulse warning';
+        }
+        if (btnConfirm) {
+          btnConfirm.className = 'btn btn-gold';
+          btnConfirm.style.background = '#d97706';
+          btnConfirm.style.borderColor = '#d97706';
+          btnConfirm.style.color = '#ffffff';
+          btnConfirm.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.25)';
+        }
+      } else {
+        if (iconWrap) {
+          iconWrap.style.background = '#d1fae5';
+          iconWrap.style.color = '#059669';
+          iconWrap.className = 'confirm-icon-pulse primary';
+        }
+        if (btnConfirm) {
+          btnConfirm.className = 'btn btn-primary';
+          btnConfirm.style.background = '#0d7a57';
+          btnConfirm.style.borderColor = '#0d7a57';
+          btnConfirm.style.color = '#ffffff';
+          btnConfirm.style.boxShadow = '0 4px 12px rgba(13, 122, 87, 0.25)';
+        }
+      }
+
+      if (icon) icon.className = iconClass;
+      if (title) title.innerText = options.title || 'Konfirmasi';
+      if (message) message.innerHTML = options.message || 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+
+      // Item details preview
+      if (options.detailsHtml) {
+        if (detailsContent) detailsContent.innerHTML = options.detailsHtml;
+        if (detailsCard) detailsCard.style.display = 'block';
+      } else if (options.itemDetails && Array.isArray(options.itemDetails) && options.itemDetails.length > 0) {
+        if (detailsContent) {
+          detailsContent.innerHTML = options.itemDetails.map(item => `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; font-size: 0.88rem; border-bottom: 1px dashed #f1f5f9; padding-bottom: 0.35rem;">
+              <span style="color: #64748b;">${item.label}:</span>
+              <span style="${item.highlight ? 'font-weight: 800; color: #dc2626; font-size: 0.95rem;' : 'font-weight: 600; color: #1e293b;'}">${item.value}</span>
+            </div>
+          `).join('');
+        }
+        if (detailsCard) detailsCard.style.display = 'block';
+      } else {
+        if (detailsCard) detailsCard.style.display = 'none';
+      }
+
+      // Warning Note
+      if (options.warningText) {
+        if (warningText) warningText.innerText = options.warningText;
+        if (warningBox) warningBox.style.display = 'flex';
+      } else if (options.warningText === null) {
+        if (warningBox) warningBox.style.display = 'none';
+      } else {
+        if (warningBox) warningBox.style.display = 'flex';
+        if (warningText) warningText.innerText = 'Perhatian: Data yang dihapus tidak dapat dipulihkan kembali.';
+      }
+
+      // Button Text
+      if (btnCancel) btnCancel.innerText = options.cancelText || 'Batal';
+      if (btnConfirm) btnConfirm.innerHTML = options.confirmHtml || `<i class="${iconClass}"></i> ${options.confirmText || 'Ya, Lanjutkan'}`;
+
+      this.openModal('modal-custom-confirm');
+
+      let isResolved = false;
+      const cleanup = () => {
+        if (isResolved) return;
+        isResolved = true;
+        if (btnConfirm) btnConfirm.onclick = null;
+        if (btnCancel) btnCancel.onclick = null;
+        modal.onclick = null;
+        document.removeEventListener('keydown', keyHandler);
+        this.closeModal('modal-custom-confirm');
+      };
+
+      const keyHandler = (e) => {
+        if (e.key === 'Escape') {
+          cleanup();
+          resolve(false);
+        }
+      };
+
+      if (btnConfirm) {
+        btnConfirm.onclick = () => {
+          cleanup();
+          resolve(true);
+        };
+      }
+
+      if (btnCancel) {
+        btnCancel.onclick = () => {
+          cleanup();
+          resolve(false);
+        };
+      }
+
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          cleanup();
+          resolve(false);
+        }
+      };
+
+      document.addEventListener('keydown', keyHandler);
+    });
+  }
+
   initLoginHandler() {
     const formLogin = document.getElementById('form-login-admin');
     if (formLogin) {

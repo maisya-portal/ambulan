@@ -1687,3 +1687,101 @@ body.admin-mode .emergency-ticker-bar {
   align-items: center;
   gap: 0.4rem;
 }
+
+/* Filter Toolbar Active Styling */
+.filter-donasi-btn,
+.filter-pengeluaran-btn {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border-radius: 20px !important;
+  font-size: 0.82rem !important;
+  padding: 0.35rem 0.85rem !important;
+}
+
+.filter-donasi-btn:hover,
+.filter-pengeluaran-btn:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+  background: rgba(13, 122, 87, 0.08) !important;
+}
+
+.filter-donasi-btn.active,
+.filter-pengeluaran-btn.active {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 2px 6px rgba(13, 122, 87, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+/* ==========================================================================
+   CUSTOM ELEGANT CONFIRMATION DIALOG
+   ========================================================================== */
+.modal-dialog-confirm {
+  max-width: 450px !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 60px -10px rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  animation: confirmPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+@keyframes confirmPop {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.confirm-icon-pulse {
+  animation: pulseRed 2s infinite ease-in-out;
+}
+
+.confirm-icon-pulse.warning {
+  animation: pulseAmber 2s infinite ease-in-out;
+}
+
+.confirm-icon-pulse.primary {
+  animation: pulseGreen 2s infinite ease-in-out;
+}
+
+@keyframes pulseRed {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+@keyframes pulseAmber {
+  0% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(217, 119, 6, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
+  }
+}
+
+@keyframes pulseGreen {
+  0% {
+    box-shadow: 0 0 0 0 rgba(13, 122, 87, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(13, 122, 87, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 122, 87, 0);
+  }
+}
+

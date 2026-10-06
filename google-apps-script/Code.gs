@@ -109,42 +109,6 @@ function initDatabase() {
   return { success: true, message: "Sheets verified and initialized successfully" };
 }
 
-/**
- * Membersihkan seluruh baris data demo di spreadsheet
- */
-function clearDemoData() {
-  const ss = getSS();
-  const sheetsToClear = ["donasi_masuk", "pengeluaran", "donatur", "layanan_ambulan"];
-  
-  sheetsToClear.forEach(function(name) {
-    const sheet = ss.getSheetByName(name);
-    if (sheet) {
-      const lastRow = sheet.getLastRow();
-      if (lastRow > 1) {
-        sheet.deleteRows(2, lastRow - 1);
-      }
-    }
-  });
-
-  // Reset audit log
-  const auditSheet = ss.getSheetByName("audit_log");
-  if (auditSheet) {
-    const lastRow = auditSheet.getLastRow();
-    if (lastRow > 1) {
-      auditSheet.deleteRows(2, lastRow - 1);
-    }
-    auditSheet.appendRow([
-      "AUD-001",
-      Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss"),
-      "system",
-      "CLEAN_DATABASE",
-      "Seluruh data demo spreadsheet berhasil dibersihkan",
-      "-"
-    ]);
-  }
-
-  return { success: true, message: "Seluruh data demo di spreadsheet berhasil dibersihkan!" };
-}
 
 /**
  * Handle GET Requests (Read public and admin data)
@@ -187,6 +151,26 @@ function doGet(e) {
         break;
       case "ping":
         responseData = { success: true, timestamp: new Date().toISOString(), message: "API Ambulan Ponpes Imam Syafi'i Aktif" };
+        break;
+      case "editPengeluaran":
+        let editExpPayload = e.parameter;
+        if (e.parameter.payload) {
+          try { editExpPayload = JSON.parse(e.parameter.payload); } catch(err) {}
+        }
+        responseData = editPengeluaran(editExpPayload);
+        break;
+      case "deletePengeluaran":
+        responseData = deletePengeluaran(e.parameter);
+        break;
+      case "editDonasi":
+        let editDonasiPayload = e.parameter;
+        if (e.parameter.payload) {
+          try { editDonasiPayload = JSON.parse(e.parameter.payload); } catch(err) {}
+        }
+        responseData = editDonasi(editDonasiPayload);
+        break;
+      case "deleteDonasi":
+        responseData = deleteDonasi(e.parameter);
         break;
       default:
         responseData = { success: false, message: "Action tidak dikenal: " + action };
@@ -1090,13 +1074,15 @@ function editDonasi(data) {
   const sheet = ss.getSheetByName("donasi_masuk");
   if (!sheet) return { success: false, message: "Sheet donasi_masuk tidak ditemukan" };
 
-  const id = data.id;
+  const id = String(data.id || "").trim();
+  const idLower = id.toLowerCase();
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) === String(id)) {
+    const cellId = String(rows[i][0] || "").trim();
+    if (cellId === id || cellId.toLowerCase() === idLower) {
       if (data.tanggal) sheet.getRange(i + 1, 2).setValue(data.tanggal);
       if (data.nama || data.nama_donatur) sheet.getRange(i + 1, 3).setValue(data.nama || data.nama_donatur);
-      if (data.no_wa !== undefined) sheet.getRange(i + 1, 4).setValue(data.no_wa);
+      if (data.no_wa !== undefined) sheet.getRange(i + 1, 4).setValue(String(data.no_wa));
       if (data.nominal !== undefined) sheet.getRange(i + 1, 5).setValue(Number(data.nominal));
       if (data.metode_bayar) sheet.getRange(i + 1, 6).setValue(data.metode_bayar);
       if (data.program) sheet.getRange(i + 1, 7).setValue(data.program);
@@ -1120,10 +1106,12 @@ function deleteDonasi(data) {
   const sheet = ss.getSheetByName("donasi_masuk");
   if (!sheet) return { success: false, message: "Sheet donasi_masuk tidak ditemukan" };
 
-  const id = data.id;
+  const id = String(data.id || "").trim();
+  const idLower = id.toLowerCase();
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) === String(id)) {
+    const cellId = String(rows[i][0] || "").trim();
+    if (cellId === id || cellId.toLowerCase() === idLower) {
       sheet.deleteRow(i + 1);
       logAudit(data.adminName || "Admin", "DELETE_DONASI", "Menghapus donasi " + id);
       return { success: true, message: "Donasi " + id + " berhasil dihapus" };
@@ -1137,10 +1125,12 @@ function editPengeluaran(data) {
   const sheet = ss.getSheetByName("pengeluaran");
   if (!sheet) return { success: false, message: "Sheet pengeluaran tidak ditemukan" };
 
-  const id = data.id;
+  const id = String(data.id || "").trim();
+  const idLower = id.toLowerCase();
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) === String(id)) {
+    const cellId = String(rows[i][0] || "").trim();
+    if (cellId === id || cellId.toLowerCase() === idLower) {
       if (data.tanggal) sheet.getRange(i + 1, 2).setValue(data.tanggal);
       if (data.kategori) sheet.getRange(i + 1, 3).setValue(data.kategori);
       if (data.deskripsi) sheet.getRange(i + 1, 4).setValue(data.deskripsi);
@@ -1158,10 +1148,12 @@ function deletePengeluaran(data) {
   const sheet = ss.getSheetByName("pengeluaran");
   if (!sheet) return { success: false, message: "Sheet pengeluaran tidak ditemukan" };
 
-  const id = data.id;
+  const id = String(data.id || "").trim();
+  const idLower = id.toLowerCase();
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) === String(id)) {
+    const cellId = String(rows[i][0] || "").trim();
+    if (cellId === id || cellId.toLowerCase() === idLower) {
       sheet.deleteRow(i + 1);
       logAudit(data.adminName || "Admin", "DELETE_EXPENSE", "Menghapus pengeluaran " + id);
       return { success: true, message: "Pengeluaran " + id + " berhasil dihapus" };
